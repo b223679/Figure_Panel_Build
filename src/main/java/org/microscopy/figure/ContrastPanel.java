@@ -17,6 +17,7 @@ public class ContrastPanel extends JPanel {
   private final JComboBox<ChannelConfig.Lut> lut = new JComboBox<>(ChannelConfig.Lut.values());
   private final JCheckBox invert = new JCheckBox("Invert gray");
   private final boolean compact;
+  private boolean individual;
   private final JSpinner min = new JSpinner(new SpinnerNumberModel(0.0, null, null, 1.0)),
       max = new JSpinner(new SpinnerNumberModel(2000.0, null, null, 1.0));
   private final JLabel message = new JLabel("Shared B&C: all conditions use identical Min/Max.");
@@ -124,6 +125,12 @@ public class ContrastPanel extends JPanel {
   }
 
   public int selectedChannel() { return selector.getSelectedIndex() < 0 ? -1 : current().index; }
+
+  public void setIndividual() {
+    individual = true;
+    setBorder(BorderFactory.createTitledBorder("B&C — selected panel only"));
+    message.setText("This panel only. Use Apply to row / column to copy settings.");
+  }
 
   public void refreshFromModel() {
     int selected = selector.getSelectedIndex();
@@ -248,7 +255,7 @@ public class ContrastPanel extends JPanel {
         strip.add(label);
       }
       message.setText(
-          "Shared across ALL conditions: "
+          (individual ? "Selected panel: " : "Shared across ALL conditions: ")
               + String.format(java.util.Locale.ROOT, "%.3f – %.3f", cc.min, cc.max));
     } catch (Exception ex) {
       message.setText(ex.getMessage());

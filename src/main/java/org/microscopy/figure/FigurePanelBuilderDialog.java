@@ -33,7 +33,9 @@ public class FigurePanelBuilderDialog extends JFrame {
   private final JToggleButton showContrast = new JToggleButton("B&C", true);
   private final JPanel advanced = new JPanel(new BorderLayout());
   private ContrastPanel dockContrast;
+  private InsetPanel insetPanel;
   private int selectedDisplay = -1;
+  private int reorderHighlightCondition = -1;
   private boolean appearanceInitialized;
   private final JLabel status = new JLabel("B&C is shared by all conditions for each channel.");
   private final ConditionTable conditionModel = new ConditionTable();
@@ -104,12 +106,24 @@ public class FigurePanelBuilderDialog extends JFrame {
     advanced.setVisible(true);
     JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
     button(toolbar, "Select Images", this::selectImages);
+    JToggleButton freeMode = new JToggleButton("Free mode OFF");
+    toolbar.add(freeMode);
+    freeMode.addActionListener(e -> {
+      freeMode.setSelected(false);
+      if (JOptionPane.showConfirmDialog(this,
+          "Free modeをONにすると、現在のFigureをすべて消去します。続けますか？",
+          "Free build", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.OK_OPTION) return;
+      int[] grid = FreeBuildDialog.chooseGrid(this);
+      if (grid == null) return;
+      new FreeBuildDialog(grid[0], grid[1]).setVisible(true);
+      dispose();
+    });
     toolbar.add(showContrast);
     showContrast.addActionListener(e -> {
       contrastDock.setVisible(showContrast.isSelected());
       revalidate(); schedulePreview();
     });
-    JToggleButton settingsToggle = new JToggleButton("Labels / Scale", true);
+    JToggleButton settingsToggle = new JToggleButton("Design", true);
     toolbar.add(settingsToggle);
     settingsToggle.addActionListener(e -> {
       advanced.setVisible(settingsToggle.isSelected());
@@ -154,6 +168,8 @@ public class FigurePanelBuilderDialog extends JFrame {
     add(footer, BorderLayout.SOUTH);
     tabs.addTab(
         "Style", new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
+    tabs.addTab(
+        "Inset", new JScrollPane(insetPanel = new InsetPanel(config, inputs, this::appearanceChanged)));
     previewTimer.setRepeats(false);
     canvasScroll.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
       public void componentResized(java.awt.event.ComponentEvent e) { schedulePreview(); }
@@ -296,6 +312,7 @@ public class FigurePanelBuilderDialog extends JFrame {
       AppearanceDefaults.initialize(config, source);
       appearanceInitialized = true;
       tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
+      tabs.setComponentAt(2, new JScrollPane(insetPanel = new InsetPanel(config, inputs, this::appearanceChanged)));
     }
     config.conditions.add(
         new ConditionConfig(source.title.replaceFirst("(?i)\\.tiff?$", ""), source.id));
@@ -347,6 +364,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     int i = channels.getSelectedRow(), j = i + delta;
     if (i >= 0 && j >= 0 && j < config.displayChannels.size()) {
       Collections.swap(config.displayChannels, i, j);
+      onChannelGroupSwapped(i, j);
       refresh();
       channels.setRowSelectionInterval(j, j);
     }
@@ -375,6 +393,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     }
     controls.revalidate();
     workspace.setAxes(config.rowsAreChannels);
+    if (insetPanel != null) insetPanel.refreshBounds();
     rebuildDock();
     recordChange(null);
     schedulePreview();
@@ -407,6 +426,7 @@ public class FigurePanelBuilderDialog extends JFrame {
       config = state.configuration; inputs = state.inputs; appearanceInitialized = state.appearanceInitialized;
       selectedDisplay = -1;
       tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
+      tabs.setComponentAt(2, new JScrollPane(insetPanel = new InsetPanel(config, inputs, this::appearanceChanged)));
       refresh();
     } finally { restoringHistory = false; }
   }
@@ -423,9 +443,40 @@ public class FigurePanelBuilderDialog extends JFrame {
     if (JOptionPane.showConfirmDialog(this, "Remove " + name + " from this figure?\nOriginal images and TIFF files will be kept.",
         "Remove " + (channel ? "Channel / Merge" : "Condition"), JOptionPane.OK_CANCEL_OPTION,
         JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION) return;
-    if (channel) { config.displayChannels.remove(index); selectedDisplay = -1; }
-    else config.conditions.remove(index);
+    if (channel) {
+      config.displayChannels.remove(index);
+      onChannelGroupRemoved(index);
+      selectedDisplay = -1;
+    } else config.conditions.remove(index);
     refresh();
+  }
+
+  /**
+   * Keeps each condition's per-cell Inset overrides index-aligned with config.displayChannels
+   * across structural edits to that list. Adding a group needs no action: a short override list
+   * already means "no inset" for the new trailing index.
+   */
+  private void onChannelGroupRemoved(int index) {
+    for (ConditionConfig c : config.conditions) if (index < c.insets.size()) c.insets.remove(index);
+  }
+
+  private void onChannelGroupSwapped(int i, int j) {
+    for (ConditionConfig c : config.conditions) swapEntry(c.insets, i, j);
+  }
+
+  private void onChannelGroupMoved(int from, int to) {
+    for (ConditionConfig c : config.conditions) moveEntry(c.insets, from, to);
+  }
+
+  private static <T> void swapEntry(List<T> list, int i, int j) {
+    while (list.size() <= Math.max(i, j)) list.add(null);
+    Collections.swap(list, i, j);
+  }
+
+  private static <T> void moveEntry(List<T> list, int from, int to) {
+    while (list.size() <= from) list.add(null);
+    T value = list.remove(from);
+    list.add(Math.min(to, list.size()), value);
   }
 
   private void schedulePreview() {
@@ -521,6 +572,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     appearanceInitialized = true;
     selectedDisplay = -1;
     tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
+    tabs.setComponentAt(2, new JScrollPane(insetPanel = new InsetPanel(config, inputs, this::appearanceChanged)));
     tabs.setSelectedIndex(0);
     refresh();
   }
@@ -562,6 +614,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     if (display < 0 || display >= config.displayChannels.size()) return;
     if (!showContrast.isSelected()) showContrast.doClick();
     selectedDisplay = display;
+    if (insetPanel != null) insetPanel.selectCell(condition, display);
     if (channels.getSelectedRow() != display) {
       refreshing = true;
       try { channels.setRowSelectionInterval(display, display); }
@@ -604,7 +657,12 @@ public class FigurePanelBuilderDialog extends JFrame {
       }
     }
     contrastDock.add(trash);
-    workspace.select(-1, selectedDisplay);
+    if (reorderHighlightCondition >= 0) {
+      workspace.select(reorderHighlightCondition, -1);
+      reorderHighlightCondition = -1;
+    } else {
+      workspace.select(-1, selectedDisplay);
+    }
     contrastDock.revalidate();
     contrastDock.repaint();
   }
@@ -640,8 +698,12 @@ public class FigurePanelBuilderDialog extends JFrame {
   private void reorderCanvas(boolean channel, int from, int to) {
     if (channel) {
       config.displayChannels.add(to, config.displayChannels.remove(from));
+      onChannelGroupMoved(from, to);
       selectedDisplay = to;
-    } else config.conditions.add(to, config.conditions.remove(from));
+    } else {
+      config.conditions.add(to, config.conditions.remove(from));
+      reorderHighlightCondition = to;
+    }
     refresh();
   }
 

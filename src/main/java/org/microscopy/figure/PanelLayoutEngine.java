@@ -62,6 +62,9 @@ public class PanelLayoutEngine {
           ScaleBarRenderer bars = new ScaleBarRenderer();
           if (bars.applies(config.scaleBar, config, c, d, row, col))
             bars.draw(cell, source, config.scaleBar, scale);
+          InsetCell insetCell = config.insetCell(c, d);
+          if (new InsetRenderer().applies(insetCell, source, config.inset))
+            new InsetRenderer().draw(cell, source, config.displayChannels.get(d), config, config.inset, insetCell, scale);
           g.drawImage(
               cell,
               x0 + col * (ref.width + config.horizontalGap),

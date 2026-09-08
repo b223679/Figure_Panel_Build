@@ -63,7 +63,7 @@ public class WorkspaceUiValidation {
       waitPreview();
       capture("workspace-transposed.png");
       SwingUtilities.invokeAndWait(() -> {
-        AbstractButton toggle = button(dialog, "Labels / Scale");
+        AbstractButton toggle = button(dialog, "Design");
         if (!toggle.isSelected()) toggle.doClick();
         layout(dialog.getContentPane());
       });
@@ -71,7 +71,7 @@ public class WorkspaceUiValidation {
       capture("workspace-settings.png");
       SwingUtilities.invokeAndWait(() -> {
         try {
-          button(dialog, "Labels / Scale").doClick();
+          button(dialog, "Design").doClick();
           SettingsSerializer serializer = new SettingsSerializer();
           SettingsSerializer.Loaded loaded = serializer.load(new File("test-data/example-settings.json"));
           FigureConfiguration c = loaded.configuration;

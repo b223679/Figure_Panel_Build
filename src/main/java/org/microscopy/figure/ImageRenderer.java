@@ -41,6 +41,20 @@ public class ImageRenderer {
       FigureConfiguration config,
       int width,
       int height) {
+    return render(source, display, config, 0, 0, source.width, source.height, width, height);
+  }
+
+  /** Renders the sub-rectangle [srcX, srcX+srcW) x [srcY, srcY+srcH) of the source, scaled to width x height. */
+  public BufferedImage render(
+      InputImageManager.Source source,
+      DisplayChannel display,
+      FigureConfiguration config,
+      int srcX,
+      int srcY,
+      int srcW,
+      int srcH,
+      int width,
+      int height) {
     BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     for (int y = 0; y < height; y++)
       for (int x = 0; x < width; x++) {
@@ -50,8 +64,8 @@ public class ImageRenderer {
               rgb(
                   source.value(
                       id,
-                      (int) ((long) x * source.width / width),
-                      (int) ((long) y * source.height / height)),
+                      srcX + (int) ((long) x * srcW / width),
+                      srcY + (int) ((long) y * srcH / height)),
                   config.channel(id));
           r += (color >> 16) & 255;
           g += (color >> 8) & 255;

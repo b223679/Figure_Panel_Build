@@ -296,13 +296,16 @@ public class FigureWorkspace extends JPanel {
           if (bounds != null) g.drawRect(bounds.x + 1, bounds.y + 1, bounds.width - 3, bounds.height - 3);
           return;
         }
-        if (selectedDisplay < 0 || selectedDisplay >= snapshot.displayChannels.size()) return;
+        if (selectedDisplay < 0 && selectedCondition < 0) return;
         for (int i = 0; i < snapshot.conditions.size(); i++) {
           if (selectedCondition >= 0 && i != selectedCondition) continue;
-          int row = snapshot.rowsAreChannels ? selectedDisplay : i;
-          int col = snapshot.rowsAreChannels ? i : selectedDisplay;
-          g.drawRect(x0 + col * (cellWidth + snapshot.horizontalGap) + 1,
-              y0 + row * (cellHeight + snapshot.verticalGap) + 1, cellWidth - 3, cellHeight - 3);
+          for (int j = 0; j < snapshot.displayChannels.size(); j++) {
+            if (selectedDisplay >= 0 && j != selectedDisplay) continue;
+            int row = snapshot.rowsAreChannels ? j : i;
+            int col = snapshot.rowsAreChannels ? i : j;
+            g.drawRect(x0 + col * (cellWidth + snapshot.horizontalGap) + 1,
+                y0 + row * (cellHeight + snapshot.verticalGap) + 1, cellWidth - 3, cellHeight - 3);
+          }
         }
       } finally { g.dispose(); }
     }

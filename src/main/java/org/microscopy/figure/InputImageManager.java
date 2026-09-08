@@ -54,6 +54,9 @@ public class InputImageManager {
     return copy;
   }
 
+  /** Merge immutable snapshots, preserving older sources required by undo history. */
+  public void include(InputImageManager other) { sources.putAll(other.sources); }
+
   public Source load(File file) {
     if (!file.getName().toLowerCase(Locale.ROOT).matches(".*\\.tiff?"))
       throw new IllegalArgumentException("Select a TIF/TIFF file.");

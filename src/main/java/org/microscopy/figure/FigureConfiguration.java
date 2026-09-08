@@ -5,6 +5,7 @@ import java.util.*;
 public class FigureConfiguration {
   public LabelConfig labels = new LabelConfig();
   public ScaleBarConfig scaleBar = new ScaleBarConfig();
+  public InsetConfig inset = new InsetConfig();
   public int horizontalGap = 0, verticalGap = 0;
   public List<ConditionConfig> conditions = new ArrayList<>();
   public List<ChannelConfig> channels = new ArrayList<>();
@@ -33,6 +34,12 @@ public class FigureConfiguration {
     StringJoiner label = new StringJoiner("/");
     for (int id : d.channels) label.add(channel(id).label);
     return label.toString();
+  }
+
+  public InsetCell insetCell(int conditionIndex, int displayIndex) {
+    List<InsetCell> cells = conditions.get(conditionIndex).insets;
+    InsetCell cell = displayIndex < cells.size() ? cells.get(displayIndex) : null;
+    return cell == null ? new InsetCell() : cell;
   }
 
   public void validate(InputImageManager inputs) {
@@ -101,6 +108,7 @@ public class FigureConfiguration {
       for (ConditionConfig c : conditions)
         new ScaleBarRenderer().lengthPixels(inputs.get(c.sourceId), scaleBar);
     }
+    inset.validate();
   }
 
   public String calibrationWarning(InputImageManager inputs) {

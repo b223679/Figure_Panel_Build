@@ -91,7 +91,11 @@ public final class PptxExporter {
           InputImageManager.Source source=inputs.get(c.conditions.get(ci).sourceId);
           String rel="image"+(++picture), media="figure"+picture+".png";
           ByteArrayOutputStream png=new ByteArrayOutputStream();
-          ImageIO.write(new ImageRenderer().render(source,c.displayChannels.get(di),c),"png",png);
+          BufferedImage picImage=new ImageRenderer().render(source,c.displayChannels.get(di),c);
+          InsetCell insetCell=c.insetCell(ci,di);
+          if(new InsetRenderer().applies(insetCell,source,c.inset))
+            new InsetRenderer().draw(picImage,source,c.displayChannels.get(di),c,c.inset,insetCell,1);
+          ImageIO.write(picImage,"png",png);
           entry(out,"ppt/media/"+media,png.toByteArray());
           relationships.append("<Relationship Id=\"").append(rel).append("\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"../media/").append(media).append("\"/>");
           shapes.append("<p:pic><p:nvPicPr><p:cNvPr id=\"").append(++id).append("\" name=\"")
@@ -116,6 +120,49 @@ public final class PptxExporter {
           double cy=y0+row*(ref.height+c.verticalGap)+ref.height/2.0;
           label(c,d,value,true,g,cx-ref.height/2.0,cy-fm.getHeight()/2.0,ref.height,fm.getHeight(),l.rowRight?5400000:16200000);
         }
+        writeTemplate(out, l, dim);
+      }
+      Files.move(temp,destination.toPath(),StandardCopyOption.REPLACE_EXISTING);
+    } finally { g.dispose(); Files.deleteIfExists(temp); }
+  }
+  public void saveFree(File destination, FreeBuildConfiguration c, InputImageManager inputs) throws IOException {
+    OutputSafety.checkDestination(destination, inputs);
+    java.util.List<FreeBuildConfiguration.Item> items = c.scene(inputs, 1);
+    Dimension dim = c.dimensions();
+    factor = 12192000.0 / Math.max(dim.width, dim.height);
+    id = 1; shapes.setLength(0); relationships.setLength(0);
+    Path temp = Files.createTempFile(destination.toPath().toAbsolutePath().getParent(), "free-figure-", ".pptx.tmp");
+    Graphics2D g = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics();
+    try {
+      try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(temp))) {
+        int picture = 0;
+        for (FreeBuildConfiguration.Item item : items) {
+          Rectangle b = item.bounds;
+          if (item.image == null) {
+            int width = item.rotation == 0 ? b.width : b.height;
+            FontMetrics fm = new LabelRenderer().fitFont(g, c.fontSize, item.text, width - 8);
+            text("Free label: " + item.text, run(item.text, c.whiteBackground ? Color.BLACK : Color.WHITE, g.getFont().getSize2D()),
+                b.getCenterX() - width / 2.0, b.getCenterY() - fm.getHeight() / 2.0,
+                width, fm.getHeight(), item.rotation == 0 ? 0 : 16200000);
+          } else {
+            String rel = "image" + (++picture), media = "free" + picture + ".png";
+            ByteArrayOutputStream png = new ByteArrayOutputStream(); ImageIO.write(item.image, "png", png);
+            entry(out, "ppt/media/" + media, png.toByteArray());
+            relationships.append("<Relationship Id=\"").append(rel).append("\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"../media/").append(media).append("\"/>");
+            shapes.append("<p:pic><p:nvPicPr><p:cNvPr id=\"").append(++id).append("\" name=\"Free panel ").append(picture)
+                .append("\"/><p:cNvPicPr><a:picLocks noChangeAspect=\"1\"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed=\"")
+                .append(rel).append("\"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>")
+                .append(transform(b.x,b.y,b.width,b.height,0)).append("<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></p:spPr></p:pic>");
+          }
+        }
+        LabelConfig labels = new LabelConfig(); labels.whiteBackground = c.whiteBackground;
+        writeTemplate(out, labels, dim);
+      }
+      Files.move(temp,destination.toPath(),StandardCopyOption.REPLACE_EXISTING);
+    } finally { g.dispose(); Files.deleteIfExists(temp); }
+  }
+
+  private void writeTemplate(ZipOutputStream out, LabelConfig l, Dimension dim) throws IOException {
         String slide="<?xml version=\"1.0\" encoding=\"UTF-8\"?><p:sld xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\" xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><p:cSld>"
             +(l.transparentBackground?"":"<p:bg><p:bgPr><a:solidFill><a:srgbClr val=\""+(l.whiteBackground?"FFFFFF":"000000")+"\"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>")
             +"<p:spTree><p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>"+shapes+"</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>";
@@ -135,8 +182,6 @@ public final class PptxExporter {
             }
           }
         }
-      }
-      Files.move(temp,destination.toPath(),StandardCopyOption.REPLACE_EXISTING);
-    } finally { g.dispose(); Files.deleteIfExists(temp); }
   }
+
 }

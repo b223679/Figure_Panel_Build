@@ -65,12 +65,18 @@ public class SettingsSerializer {
 
   public Loaded load(File file) throws IOException {
     Document doc;
+    JsonObject raw;
     try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-      doc = gson.fromJson(reader, Document.class);
+      raw = gson.fromJson(reader, JsonObject.class);
+      doc = gson.fromJson(raw, Document.class);
     }
     if (doc == null || doc.version != 1 || doc.configuration == null || doc.sources == null)
       throw new IllegalArgumentException("Invalid/unsupported settings document.");
     FigureConfiguration cfg = doc.configuration;
+    // Claude's original inset documents used explicit width/height, before the ROI-size mode existed.
+    JsonObject oldConfig = raw.getAsJsonObject("configuration");
+    if (oldConfig.has("inset") && oldConfig.get("inset").isJsonObject()
+        && !oldConfig.getAsJsonObject("inset").has("sameAsRoi")) cfg.inset.sameAsRoi = false;
     InputImageManager inputs = new InputImageManager();
     Map<String, String> remap = new HashMap<>();
     try {
