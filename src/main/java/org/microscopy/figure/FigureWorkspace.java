@@ -12,6 +12,8 @@ public class FigureWorkspace extends JPanel {
     void select(int condition, int display);
     void edit(boolean channel, int index);
     void move(boolean channel, int from, int to);
+    default void swap() {}
+    default void remove(boolean channel, int index) {}
   }
 
   static class Hit {
@@ -28,6 +30,10 @@ public class FigureWorkspace extends JPanel {
   private final Actions actions;
   private final Canvas canvas = new Canvas();
   private final JButton right = addButton(), bottom = addButton();
+  private final JButton swap = new JButton("Swap", new FigureIcons(FigureIcons.Kind.SWAP, 38));
+  private TrashTarget trash;
+  private boolean dragging, dragRow;
+  private int dropIndex = -1;
   private boolean rowsAreChannels = true, ready;
   private FigureConfiguration snapshot;
   private int cellWidth, cellHeight, fullWidth, fullHeight;
@@ -50,22 +56,34 @@ public class FigureWorkspace extends JPanel {
     add(right, k);
     k.gridx = 0; k.gridy = 1;
     add(bottom, k);
+    k.gridx = 1;
+    swap.setName("swapAxes"); swap.setForeground(Color.WHITE); swap.setBackground(Color.BLACK);
+    swap.setBorderPainted(false); swap.setFocusPainted(false);
+    swap.setToolTipText("Swap rows and columns");
+    swap.addActionListener(e -> actions.swap()); add(swap, k);
     right.addActionListener(e -> actions.add(!rowsAreChannels));
     bottom.addActionListener(e -> actions.add(rowsAreChannels));
     setAxes(true);
     canvas.setToolTipText("Click: B&C • Double-click label: edit • Drag: reorder row or column");
     MouseAdapter mouse = new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
+        resetDrag();
+        if (!SwingUtilities.isLeftMouseButton(e)) return;
         pressed = hit(e.getX(), e.getY());
         pressPoint = e.getPoint();
       }
+      public void mouseDragged(MouseEvent e) { updateDrag(e.getPoint()); }
       public void mouseReleased(MouseEvent e) {
-        Hit target = hit(e.getX(), e.getY());
-        if (pressed == null || target == null || pressPoint.distance(e.getPoint()) < 8) return;
-        boolean row = Math.abs(e.getY() - pressPoint.y) > Math.abs(e.getX() - pressPoint.x);
-        int from = row ? pressed.row : pressed.column, to = row ? target.row : target.column;
-        if (from >= 0 && to >= 0 && from != to) actions.move(row == rowsAreChannels, from, to);
-        pressed = null;
+        // Re-evaluate on release as well, including synthetic drag events and a final outside point.
+        updateDrag(e.getPoint());
+        if (!dragging || pressed == null) { resetDrag(); return; }
+        boolean channel = dragRow == rowsAreChannels;
+        int from = dragRow ? pressed.row : pressed.column, to = dropIndex;
+        boolean remove = trash != null && trash.containsDrop(canvas, e.getPoint());
+        resetDrag();
+        if (from < 0) return;
+        if (remove) actions.remove(channel, from);
+        else if (to >= 0 && from != to) actions.move(channel, from, to);
       }
       public void mouseClicked(MouseEvent e) {
         Hit h = hit(e.getX(), e.getY());
@@ -84,6 +102,49 @@ public class FigureWorkspace extends JPanel {
       }
     };
     canvas.addMouseListener(mouse);
+    canvas.addMouseMotionListener(mouse);
+    canvas.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "cancelDrag");
+    canvas.getActionMap().put("cancelDrag", new AbstractAction() {
+      public void actionPerformed(ActionEvent e) { resetDrag(); }
+    });
+  }
+
+  void setTrashTarget(TrashTarget target) { trash = target; }
+
+  private void resetDrag() {
+    dragging = false; pressed = null; pressPoint = null; dropIndex = -1;
+    if (trash != null) trash.setState(false, false);
+    canvas.setCursor(Cursor.getDefaultCursor()); canvas.repaint();
+  }
+
+  private void updateDrag(Point point) {
+    if (!ready || pressed == null || pressPoint == null) return;
+    if (!dragging) {
+      if (pressPoint.distance(point) < 8) return;
+      dragRow = pressed.rowLabel || (!pressed.columnLabel
+          && Math.abs(point.y - pressPoint.y) > Math.abs(point.x - pressPoint.x));
+      dragging = true; canvas.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+    }
+    boolean overTrash = trash != null && trash.containsDrop(canvas, point);
+    if (trash != null) trash.setState(true, overTrash);
+    dropIndex = overTrash ? -1 : destination(point, dragRow);
+    canvas.repaint();
+  }
+
+  private int destination(Point point, boolean row) {
+    if (image == null) return -1;
+    int dx = (canvas.getWidth() - image.getWidth()) / 2, dy = (canvas.getHeight() - image.getHeight()) / 2;
+    // A small outer margin allows dropping at the beginning/end; far outside cancels the move.
+    if (point.x < dx - 20 || point.y < dy - 20 || point.x > dx + image.getWidth() + 20
+        || point.y > dy + image.getHeight() + 20) return -1;
+    LabelRenderer labels = new LabelRenderer();
+    double coordinate = row ? (point.y - dy) * fullHeight / (double) image.getHeight()
+        : (point.x - dx) * fullWidth / (double) image.getWidth();
+    int origin = row ? (snapshot.labels.columnBottom ? 0 : labels.columnBand(snapshot.labels))
+        : (snapshot.labels.rowRight ? 0 : labels.rowBand(snapshot.labels));
+    int span = row ? cellHeight + snapshot.verticalGap : cellWidth + snapshot.horizontalGap;
+    return Math.max(0, Math.min((row ? snapshot.rows() : snapshot.columns()) - 1,
+        (int) Math.floor((coordinate - origin) / span)));
   }
 
   private static JButton addButton() {
@@ -103,9 +164,10 @@ public class FigureWorkspace extends JPanel {
     bottom.setToolTipText(rows ? "Add a channel or merge" : "Add condition images");
   }
 
-  public void pending() { ready = false; }
+  public void pending() { ready = false; resetDrag(); }
 
   public void clear(String message) {
+    resetDrag();
     ready = false;
     image = null;
     canvas.message = message;
@@ -183,7 +245,7 @@ public class FigureWorkspace extends JPanel {
   }
 
   private class Canvas extends JPanel {
-    String message = "Add TIFF images using + Condition or drop files here";
+    String message = "Select Images or use + Condition to start; TIFF files can also be dropped here";
     Canvas() { setBackground(Color.BLACK); setPreferredSize(new Dimension(700, 200)); }
     protected void paintComponent(Graphics graphics) {
       super.paintComponent(graphics);
@@ -208,6 +270,24 @@ public class FigureWorkspace extends JPanel {
         int y0 = snapshot.labels.columnBottom ? 0 : labels.columnBand(snapshot.labels);
         g.translate(dx, dy);
         g.scale(image.getWidth() / (double) fullWidth, image.getHeight() / (double) fullHeight);
+        if (dragging && pressed != null) {
+          int from = dragRow ? pressed.row : pressed.column;
+          Rectangle moving = dragRow
+              ? new Rectangle(0, y0 + from * (cellHeight + snapshot.verticalGap), fullWidth, cellHeight)
+              : new Rectangle(x0 + from * (cellWidth + snapshot.horizontalGap), 0, cellWidth, fullHeight);
+          g.setColor(new Color(255, 255, 255, 90)); g.fill(moving);
+          g.setStroke(new BasicStroke((float) (3.0 * fullWidth / image.getWidth())));
+          g.setColor(new Color(255, 200, 65)); g.draw(moving);
+          if (dropIndex >= 0 && dropIndex != from) {
+            int edge = dragRow ? y0 + dropIndex * (cellHeight + snapshot.verticalGap)
+                : x0 + dropIndex * (cellWidth + snapshot.horizontalGap);
+            if (dropIndex > from) edge += dragRow ? cellHeight : cellWidth;
+            g.setColor(new Color(65, 220, 255));
+            if (dragRow) g.drawLine(0, edge, fullWidth, edge);
+            else g.drawLine(edge, 0, edge, fullHeight);
+          }
+          return;
+        }
         g.setColor(new Color(30, 170, 215));
         g.setStroke(new BasicStroke((float) (2.0 * fullWidth / image.getWidth())));
         if (selectedLabelIndex >= 0) {

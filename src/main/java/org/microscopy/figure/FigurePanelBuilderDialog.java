@@ -13,17 +13,23 @@ import javax.swing.table.AbstractTableModel;
 public class FigurePanelBuilderDialog extends JFrame {
   private InputImageManager inputs = new InputImageManager();
   private FigureConfiguration config = new FigureConfiguration();
-  private final JPanel controls = new SettingsBody();
+  private final JPanel controls = new JPanel();
+  private final FigureHistory history = new FigureHistory();
+  private boolean restoringHistory, refreshing;
+  private final JButton undo = new JButton(new FigureIcons(FigureIcons.Kind.UNDO, 20));
+  private final JButton redo = new JButton(new FigureIcons(FigureIcons.Kind.REDO, 20));
+  private final TrashTarget trash = new TrashTarget();
   private final FigureWorkspace workspace = new FigureWorkspace(new FigureWorkspace.Actions() {
-    public void add(boolean channel) { attempt(() -> { if (channel) chooseDisplay(); else chooseFiles(); }); }
+    public void add(boolean channel) { attempt(() -> { if (channel) chooseDisplay(); else selectImages(); }); }
     public void select(int condition, int display) { attempt(() -> selectDisplay(condition, display)); }
     public void edit(boolean channel, int index) { attempt(() -> editCanvasLabel(channel, index)); }
     public void move(boolean channel, int from, int to) { attempt(() -> reorderCanvas(channel, from, to)); }
+    public void swap() { attempt(() -> swapAxes()); }
+    public void remove(boolean channel, int index) { attempt(() -> removeEntry(channel, index)); }
   });
   private final JScrollPane canvasScroll = new JScrollPane(workspace);
   private final JPanel contrastDock = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 8));
   private final JLabel selection = new JLabel("Select a channel in the figure to adjust B&C");
-  private final JButton transpose = new JButton("⇄  Swap rows / columns");
   private final JToggleButton showContrast = new JToggleButton("B&C", true);
   private final JPanel advanced = new JPanel(new BorderLayout());
   private ContrastPanel dockContrast;
@@ -33,106 +39,77 @@ public class FigurePanelBuilderDialog extends JFrame {
   private final ConditionTable conditionModel = new ConditionTable();
   private final ChannelTable channelModel = new ChannelTable();
   private final JTable conditions = new JTable(conditionModel), channels = new JTable(channelModel);
-  private final DefaultListModel<String> displayModel = new DefaultListModel<>();
-  private final JList<String> displays = new JList<>(displayModel);
-  private final JCheckBox automatic = new JCheckBox("Automatic grid", true),
-      rowChannels = new JCheckBox("Rows = Channels", true);
-  private final JSpinner rows = spinner(3, 1, 100), columns = spinner(3, 1, 100);
   private final JTabbedPane tabs = new JTabbedPane();
   private final javax.swing.Timer previewTimer = new javax.swing.Timer(180, e -> startPreview());
   private SwingWorker<java.awt.image.BufferedImage, Void> previewWorker;
   private long previewRevision;
 
   public FigurePanelBuilderDialog() {
+    this(true);
+  }
+
+  FigurePanelBuilderDialog(boolean selectOnStartup) {
     super("Figure Panel Builder");
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     config.labels.showRows = true;
     config.labels.showColumns = true;
     controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
-    controls.add(new JLabel("Conditions — double-click a name to edit"));
-    conditions.setPreferredScrollableViewportSize(new Dimension(430, 100));
-    controls.add(new JScrollPane(conditions));
-    JPanel ordering = new JPanel();
+    controls.setBorder(BorderFactory.createEmptyBorder(6, 4, 10, 4));
+    conditions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    channels.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    conditions.setFillsViewportHeight(true); channels.setFillsViewportHeight(true);
+    conditions.setName("conditionsTable"); channels.setName("channelsTable");
+    JPanel conditionSection = new JPanel(new BorderLayout(0, 4));
+    conditionSection.add(new JLabel("Conditions — double-click a name to edit"), BorderLayout.NORTH);
+    conditionSection.add(new JScrollPane(conditions), BorderLayout.CENTER);
+    JPanel ordering = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 3));
     button(ordering, "Up", () -> moveCondition(-1));
     button(ordering, "Down", () -> moveCondition(1));
     button(
         ordering,
         "Remove",
-        () -> {
-          int i = conditions.getSelectedRow();
-          if (i >= 0) config.conditions.remove(i);
-          refresh();
-        });
+        () -> removeEntry(false, conditions.getSelectedRow()));
     button(ordering, "Change source...", this::changeSource);
-    controls.add(ordering);
-    JPanel grid = new JPanel();
-    grid.add(automatic);
-    grid.add(rowChannels);
-    controls.add(grid);
-    grid = new JPanel();
-    grid.add(new JLabel("Rows"));
-    grid.add(rows);
-    grid.add(new JLabel("Columns"));
-    grid.add(columns);
-    controls.add(grid);
-    automatic.addActionListener(e -> refresh());
-    rowChannels.addActionListener(e -> refresh());
-    controls.add(new JLabel("Shared Channel B&C and LUT (all conditions)"));
-    channels.setPreferredScrollableViewportSize(new Dimension(430, 110));
-    controls.add(new JScrollPane(channels));
-    channels
-        .getColumnModel()
-        .getColumn(4)
-        .setCellEditor(new DefaultCellEditor(new JComboBox<>(ChannelConfig.Lut.values())));
-    JPanel channelActions = new JPanel();
-    button(channelActions, "Auto (all conditions)", this::autoChannel);
-    controls.add(channelActions);
-    controls.add(new JLabel("Displayed rows/columns"));
-    displays.setVisibleRowCount(4);
-    controls.add(new JScrollPane(displays));
-    JPanel displayActions = new JPanel();
-    button(displayActions, "Add channel / Merge", this::chooseDisplay);
-    button(displayActions, "Edit label / LUT", () -> {
-      int i = displays.getSelectedIndex();
-      if (i >= 0) editCanvasLabel(true, i);
+    conditionSection.add(ordering, BorderLayout.SOUTH);
+    controls.add(conditionSection);
+    JPanel channelSection = new JPanel(new BorderLayout(0, 4));
+    channelSection.add(new JLabel("Channel — double-click a name to edit"), BorderLayout.NORTH);
+    channelSection.add(new JScrollPane(channels), BorderLayout.CENTER);
+    channels.getColumnModel().getColumn(1).setCellEditor(
+        new DefaultCellEditor(new JComboBox<>(ChannelConfig.Lut.values())));
+    channels.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent e) {
+        int row = channels.rowAtPoint(e.getPoint()), col = channels.columnAtPoint(e.getPoint());
+        if (row >= 0 && col <= 1 && e.getClickCount() == 2 && config.displayChannels.get(row).merge)
+          attempt(() -> editCanvasLabel(true, row));
+      }
     });
-    controls.add(displayActions);
-    displayActions = new JPanel();
+    channels.getSelectionModel().addListSelectionListener(e -> {
+      if (!e.getValueIsAdjusting() && !refreshing && channels.getSelectedRow() >= 0)
+        selectDisplay(-1, channels.getSelectedRow());
+    });
+    JPanel displayActions = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 3));
     button(displayActions, "Up", () -> moveDisplay(-1));
     button(displayActions, "Down", () -> moveDisplay(1));
     button(
         displayActions,
         "Remove",
-        () -> {
-          int i = displays.getSelectedIndex();
-          if (i >= 0) config.displayChannels.remove(i);
-          refresh();
-        });
-    controls.add(displayActions);
-    for (Component child : controls.getComponents()) {
-      if (child instanceof JComponent) ((JComponent) child).setAlignmentX(Component.LEFT_ALIGNMENT);
-      if (child instanceof JPanel) child.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-      if (child instanceof JScrollPane) child.setMaximumSize(new Dimension(Integer.MAX_VALUE, 125));
-    }
-    tabs.addTab("Images / Channels", new JScrollPane(controls));
+        () -> removeEntry(true, channels.getSelectedRow()));
+    channelSection.add(displayActions, BorderLayout.SOUTH);
+    controls.add(channelSection);
+    controls.add(Box.createVerticalGlue());
+    tabs.addTab("Label name", controls);
     advanced.add(tabs, BorderLayout.CENTER);
     advanced.setPreferredSize(new Dimension(490, 600));
-    advanced.setVisible(false);
+    advanced.setVisible(true);
     JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    button(toolbar, "Add TIF...", this::chooseFiles);
-    button(toolbar, "Open images...", this::openImages);
-    toolbar.add(transpose);
+    button(toolbar, "Select Images", this::selectImages);
     toolbar.add(showContrast);
     showContrast.addActionListener(e -> {
       contrastDock.setVisible(showContrast.isSelected());
       revalidate(); schedulePreview();
     });
-    transpose.addActionListener(e -> attempt(() -> {
-      rowChannels.setSelected(!rowChannels.isSelected());
-      automatic.setSelected(true);
-      refresh();
-    }));
-    JToggleButton settingsToggle = new JToggleButton("Settings / Sources");
+    JToggleButton settingsToggle = new JToggleButton("Labels / Scale", true);
     toolbar.add(settingsToggle);
     settingsToggle.addActionListener(e -> {
       advanced.setVisible(settingsToggle.isSelected());
@@ -141,6 +118,13 @@ public class FigurePanelBuilderDialog extends JFrame {
     });
     button(toolbar, "Load settings", () -> settings(true));
     button(toolbar, "Save settings", () -> settings(false));
+    undo.setToolTipText("Undo (Ctrl+Z)"); redo.setToolTipText("Redo (Ctrl+Y)");
+    undo.setName("undo"); redo.setName("redo");
+    undo.getAccessibleContext().setAccessibleName("Undo"); redo.getAccessibleContext().setAccessibleName("Redo");
+    undo.addActionListener(e -> attempt(() -> restoreHistory(false)));
+    redo.addActionListener(e -> attempt(() -> restoreHistory(true)));
+    toolbar.add(undo); toolbar.add(redo);
+    installHistoryKeys();
     add(toolbar, BorderLayout.NORTH);
     JPanel center = new JPanel(new BorderLayout());
     JLabel hint = new JLabel("Click image: B&C    •    Double-click label: name / LUT    •    Drag image: reorder", SwingConstants.CENTER);
@@ -155,13 +139,13 @@ public class FigurePanelBuilderDialog extends JFrame {
     contrastDock.setBackground(Color.BLACK);
     selection.setForeground(Color.LIGHT_GRAY);
     contrastDock.add(selection);
+    workspace.setTrashTarget(trash);
     center.add(contrastDock, BorderLayout.SOUTH);
     add(center, BorderLayout.CENTER);
     add(advanced, BorderLayout.EAST);
     JPanel footer = new JPanel(new BorderLayout());
     JPanel outputActions = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    button(outputActions, "Preview", this::renderPreview);
-    button(outputActions, "Generate Figure", () -> generate(false));
+    button(outputActions, "Generate TIF", () -> generate(false));
     button(outputActions, "Save RGB TIFF...", () -> generate(true));
     button(outputActions, "Save PNG...", () -> exportFigure("png"));
     button(outputActions, "Save PPTX...", () -> exportFigure("pptx"));
@@ -169,12 +153,8 @@ public class FigurePanelBuilderDialog extends JFrame {
     footer.add(status, BorderLayout.CENTER);
     add(footer, BorderLayout.SOUTH);
     tabs.addTab(
-        "Labels / Scale", new JScrollPane(new AppearancePanel(config, this::schedulePreview)));
+        "Style", new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
     previewTimer.setRepeats(false);
-    rows.addChangeListener(e -> schedulePreview());
-    columns.addChangeListener(e -> schedulePreview());
-    conditionModel.addTableModelListener(e -> schedulePreview());
-    channelModel.addTableModelListener(e -> schedulePreview());
     canvasScroll.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
       public void componentResized(java.awt.event.ComponentEvent e) { schedulePreview(); }
     });
@@ -212,18 +192,13 @@ public class FigurePanelBuilderDialog extends JFrame {
     setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
     setLocationByPlatform(true);
     refresh();
-  }
-
-  private static JSpinner spinner(int v, int min, int max) {
-    return new JSpinner(new SpinnerNumberModel(v, min, max, 1));
-  }
-
-  private static class SettingsBody extends JPanel implements Scrollable {
-    public Dimension getPreferredScrollableViewportSize() { return new Dimension(470, 640); }
-    public boolean getScrollableTracksViewportWidth() { return true; }
-    public boolean getScrollableTracksViewportHeight() { return false; }
-    public int getScrollableUnitIncrement(Rectangle r, int axis, int direction) { return 24; }
-    public int getScrollableBlockIncrement(Rectangle r, int axis, int direction) { return 200; }
+    if (selectOnStartup) addWindowListener(new java.awt.event.WindowAdapter() {
+      public void windowOpened(java.awt.event.WindowEvent e) {
+        SwingUtilities.invokeLater(() -> {
+          if (isDisplayable() && config.conditions.isEmpty()) attempt(() -> selectImages());
+        });
+      }
+    });
   }
 
   private void button(JPanel p, String title, Runnable action) {
@@ -234,6 +209,7 @@ public class FigurePanelBuilderDialog extends JFrame {
 
   private void attempt(Runnable action) {
     try {
+      history.endGroup();
       stopEditing();
       action.run();
     } catch (Exception ex) {
@@ -264,18 +240,27 @@ public class FigurePanelBuilderDialog extends JFrame {
     }
   }
 
-  private void openImages() {
+  private void selectImages() {
     int[] ids = WindowManager.getIDList();
-    if (ids == null) throw new IllegalArgumentException("No open ImageJ images.");
+    if (ids == null) ids = new int[0];
     DefaultListModel<String> model = new DefaultListModel<>();
-    for (int id : ids) model.addElement(WindowManager.getImage(id).getTitle());
+    for (int id : ids) {
+      ImagePlus image = WindowManager.getImage(id);
+      model.addElement(image == null ? "(Image closed)" : image.getTitle());
+    }
     JList<String> list = new JList<>(model);
-    if (JOptionPane.showConfirmDialog(
-            this, new JScrollPane(list), "Select open images", JOptionPane.OK_CANCEL_OPTION)
-        == JOptionPane.OK_OPTION)
-      for (int i : list.getSelectedIndices())
-        addSource(inputs.snapshot(WindowManager.getImage(ids[i]), null));
-    refresh();
+    list.setName("openImageList"); list.setVisibleRowCount(Math.max(4, Math.min(12, ids.length)));
+    JPanel selection = new JPanel(new BorderLayout(6, 6));
+    selection.add(new JLabel(ids.length == 0 ? "No images are open in Fiji. You can open TIFF files below."
+        : "Select images already open in Fiji (Ctrl / Shift for multiple images)"), BorderLayout.NORTH);
+    selection.add(new JScrollPane(list), BorderLayout.CENTER);
+    int choice = JOptionPane.showOptionDialog(this, selection, "Select Images", JOptionPane.DEFAULT_OPTION,
+        JOptionPane.PLAIN_MESSAGE, null, new String[] {"Add selected", "Open TIFF files...", "Cancel"}, "Add selected");
+    if (choice == 1) { chooseFiles(); return; }
+    if (choice != 0) return;
+    try {
+      for (int i : list.getSelectedIndices()) addSource(inputs.snapshot(WindowManager.getImage(ids[i]), null));
+    } finally { refresh(); }
   }
 
   private void addSource(InputImageManager.Source source) {
@@ -310,7 +295,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     if (!appearanceInitialized) {
       AppearanceDefaults.initialize(config, source);
       appearanceInitialized = true;
-      tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::schedulePreview)));
+      tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
     }
     config.conditions.add(
         new ConditionConfig(source.title.replaceFirst("(?i)\\.tiff?$", ""), source.id));
@@ -359,49 +344,88 @@ public class FigurePanelBuilderDialog extends JFrame {
   }
 
   private void moveDisplay(int delta) {
-    int i = displays.getSelectedIndex(), j = i + delta;
+    int i = channels.getSelectedRow(), j = i + delta;
     if (i >= 0 && j >= 0 && j < config.displayChannels.size()) {
       Collections.swap(config.displayChannels, i, j);
       refresh();
-      displays.setSelectedIndex(j);
+      channels.setRowSelectionInterval(j, j);
     }
   }
 
-  private void autoChannel() {
-    int i = channels.getSelectedRow();
-    if (i < 0) throw new IllegalArgumentException("Select a channel row.");
-    ChannelConfig c = config.channels.get(i);
-    double[] range = new ImageRenderer().range(inputs, config, c.index);
-    c.min = range[0];
-    c.max = range[1];
-    channelModel.fireTableDataChanged();
-    if (dockContrast != null) dockContrast.refreshFromModel();
-    renderPreview();
-  }
-
   private void readGrid() {
-    config.automaticGrid = automatic.isSelected();
-    config.rowsAreChannels = rowChannels.isSelected();
-    config.manualRows = (int) rows.getValue();
-    config.manualColumns = (int) columns.getValue();
+    config.automaticGrid = true;
+    config.manualRows = Math.max(1, config.rows());
+    config.manualColumns = Math.max(1, config.columns());
   }
 
   private void refresh() {
     readGrid();
-    if (config.automaticGrid) {
-      rows.setValue(Math.max(1, config.rows()));
-      columns.setValue(Math.max(1, config.columns()));
+    refreshing = true;
+    try { conditionModel.fireTableDataChanged(); channelModel.fireTableDataChanged(); }
+    finally { refreshing = false; }
+    for (int i = 0; i < 2; i++) {
+      JPanel section = (JPanel) controls.getComponent(i);
+      JTable table = i == 0 ? conditions : channels;
+      int height = 65 + table.getTableHeader().getPreferredSize().height
+          + Math.max(5, table.getRowCount()) * table.getRowHeight();
+      section.setAlignmentX(Component.LEFT_ALIGNMENT);
+      section.setPreferredSize(new Dimension(470, height));
+      section.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+      section.setMinimumSize(new Dimension(0, 115));
     }
-    rows.setEnabled(!config.automaticGrid);
-    columns.setEnabled(!config.automaticGrid);
-    conditionModel.fireTableDataChanged();
-    channelModel.fireTableDataChanged();
-    displayModel.clear();
-    for (DisplayChannel d : config.displayChannels)
-      displayModel.addElement(config.displayLabel(d) + " " + d.channels);
+    controls.revalidate();
     workspace.setAxes(config.rowsAreChannels);
     rebuildDock();
+    recordChange(null);
     schedulePreview();
+  }
+
+  private void recordChange(String group) {
+    if (!restoringHistory) history.record(config, inputs, appearanceInitialized, group);
+    undo.setEnabled(history.canUndo()); redo.setEnabled(history.canRedo());
+  }
+
+  private void appearanceChanged() { recordChange("style"); schedulePreview(); }
+
+  private void installHistoryKeys() {
+    JRootPane root = getRootPane();
+    root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control Z"), "figureUndo");
+    root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control Y"), "figureRedo");
+    root.getActionMap().put("figureUndo", new AbstractAction() {
+      public void actionPerformed(java.awt.event.ActionEvent e) { attempt(() -> restoreHistory(false)); }
+    });
+    root.getActionMap().put("figureRedo", new AbstractAction() {
+      public void actionPerformed(java.awt.event.ActionEvent e) { attempt(() -> restoreHistory(true)); }
+    });
+  }
+
+  private void restoreHistory(boolean forward) {
+    FigureHistory.State state = forward ? history.redo() : history.undo();
+    if (state == null) return;
+    restoringHistory = true;
+    try {
+      config = state.configuration; inputs = state.inputs; appearanceInitialized = state.appearanceInitialized;
+      selectedDisplay = -1;
+      tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
+      refresh();
+    } finally { restoringHistory = false; }
+  }
+
+  private void swapAxes() {
+    config.rowsAreChannels = !config.rowsAreChannels;
+    refresh();
+  }
+
+  private void removeEntry(boolean channel, int index) {
+    int size = channel ? config.displayChannels.size() : config.conditions.size();
+    if (index < 0 || index >= size) return;
+    String name = channel ? config.displayLabel(config.displayChannels.get(index)) : config.conditions.get(index).label;
+    if (JOptionPane.showConfirmDialog(this, "Remove " + name + " from this figure?\nOriginal images and TIFF files will be kept.",
+        "Remove " + (channel ? "Channel / Merge" : "Condition"), JOptionPane.OK_CANCEL_OPTION,
+        JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION) return;
+    if (channel) { config.displayChannels.remove(index); selectedDisplay = -1; }
+    else config.conditions.remove(index);
+    refresh();
   }
 
   private void schedulePreview() {
@@ -416,8 +440,10 @@ public class FigurePanelBuilderDialog extends JFrame {
 
   private void startPreview() {
     if (config.conditions.isEmpty() || config.displayChannels.isEmpty()) {
-      workspace.clear(config.conditions.isEmpty() ? "Add TIFF images using + Condition or drop files here"
+      workspace.clear(config.conditions.isEmpty() ? "Select Images or use + Condition to start; TIFF files can also be dropped here"
           : "Use + Channel / Merge to add a displayed channel");
+      status.setText(config.conditions.isEmpty() ? "No conditions — use Select Images or + Condition."
+          : "No displayed channels — use + Channel / Merge.");
       return;
     }
     if (previewWorker != null && !previewWorker.isDone()) {
@@ -494,11 +520,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     config = result.configuration;
     appearanceInitialized = true;
     selectedDisplay = -1;
-    automatic.setSelected(config.automaticGrid);
-    rowChannels.setSelected(config.rowsAreChannels);
-    rows.setValue(config.manualRows);
-    columns.setValue(config.manualColumns);
-    tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::schedulePreview)));
+    tabs.setComponentAt(1, new JScrollPane(new AppearancePanel(config, this::appearanceChanged)));
     tabs.setSelectedIndex(0);
     refresh();
   }
@@ -533,7 +555,6 @@ public class FigurePanelBuilderDialog extends JFrame {
     for (int i : selected) d.channels.add(config.channels.get(i).index);
     config.displayChannels.add(d);
     selectedDisplay = config.displayChannels.size() - 1;
-    automatic.setSelected(true);
     refresh();
   }
 
@@ -541,9 +562,17 @@ public class FigurePanelBuilderDialog extends JFrame {
     if (display < 0 || display >= config.displayChannels.size()) return;
     if (!showContrast.isSelected()) showContrast.doClick();
     selectedDisplay = display;
-    displays.setSelectedIndex(display);
+    if (channels.getSelectedRow() != display) {
+      refreshing = true;
+      try { channels.setRowSelectionInterval(display, display); }
+      finally { refreshing = false; }
+    }
     if (condition >= 0) conditions.setRowSelectionInterval(condition, condition);
     workspace.select(condition, display);
+    if (config.conditions.isEmpty()) {
+      status.setText("Select Images or + Condition to add an image for this channel.");
+      return;
+    }
     if (dockContrast == null) rebuildDock();
     dockContrast.selectChannel(config.displayChannels.get(display).channels.get(0));
     if (condition >= 0) {
@@ -561,9 +590,10 @@ public class FigurePanelBuilderDialog extends JFrame {
       contrastDock.add(selection);
     } else {
       dockContrast = new ContrastPanel(config, inputs, () -> {
-        channelModel.fireTableDataChanged();
-        displayModel.clear();
-        for (DisplayChannel d : config.displayChannels) displayModel.addElement(config.displayLabel(d) + " " + d.channels);
+        refreshing = true;
+        try { channelModel.fireTableRowsUpdated(0, Math.max(0, channelModel.getRowCount() - 1)); }
+        finally { refreshing = false; }
+        recordChange("bc:" + (dockContrast == null ? "" : dockContrast.selectedChannel()));
         schedulePreview();
       }, true);
       dockContrast.setPreferredSize(new Dimension(530, 190));
@@ -573,6 +603,7 @@ public class FigurePanelBuilderDialog extends JFrame {
         dockContrast.selectChannel(config.displayChannels.get(selectedDisplay).channels.get(0));
       }
     }
+    contrastDock.add(trash);
     workspace.select(-1, selectedDisplay);
     contrastDock.revalidate();
     contrastDock.repaint();
@@ -717,7 +748,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     }
 
     public String getColumnName(int col) {
-      return col == 0 ? "Condition" : "Source (C / bit / size)";
+      return col == 0 ? "Name" : "Source (C / bit / size)";
     }
 
     public Object getValueAt(int r, int c) {
@@ -744,14 +775,15 @@ public class FigurePanelBuilderDialog extends JFrame {
     public void setValueAt(Object v, int r, int c) {
       config.conditions.get(r).label = v.toString();
       fireTableCellUpdated(r, c);
+      recordChange(null); schedulePreview();
     }
   }
 
   private class ChannelTable extends AbstractTableModel {
-    private final String[] names = {"ID", "Label", "Min", "Max", "LUT", "Invert gray"};
+    private final String[] names = {"Name", "LUT", "Channel No."};
 
     public int getRowCount() {
-      return config.channels.size();
+      return config.displayChannels.size();
     }
 
     public int getColumnCount() {
@@ -763,52 +795,43 @@ public class FigurePanelBuilderDialog extends JFrame {
     }
 
     public Class<?> getColumnClass(int c) {
-      return c == 5 ? Boolean.class : c == 2 || c == 3 ? Double.class : Object.class;
+      return Object.class;
     }
 
     public Object getValueAt(int r, int c) {
-      ChannelConfig ch = config.channels.get(r);
+      DisplayChannel d = config.displayChannels.get(r);
       switch (c) {
         case 0:
-          return ch.index;
+          return config.displayLabel(d);
         case 1:
-          return ch.label;
-        case 2:
-          return ch.min;
-        case 3:
-          return ch.max;
-        case 4:
-          return ch.lut;
+          if (!d.merge) return config.channel(d.channels.get(0)).lut;
+          StringJoiner luts = new StringJoiner(" / ");
+          for (int id : d.channels) luts.add(config.channel(id).lut.toString());
+          return luts.toString();
         default:
-          return ch.invert;
+          StringJoiner ids = new StringJoiner(" / ");
+          for (int id : d.channels) ids.add(Integer.toString(id));
+          return ids.toString();
       }
     }
 
     public boolean isCellEditable(int r, int c) {
-      return c > 0;
+      return c < 2 && !config.displayChannels.get(r).merge;
     }
 
     public void setValueAt(Object v, int r, int c) {
-      ChannelConfig ch = config.channels.get(r);
+      ChannelConfig ch = config.channel(config.displayChannels.get(r).channels.get(0));
       switch (c) {
-        case 1:
+        case 0:
           ch.label = v.toString();
           break;
-        case 2:
-          ch.min = ((Number) v).doubleValue();
-          break;
-        case 3:
-          ch.max = ((Number) v).doubleValue();
-          break;
-        case 4:
+        case 1:
           ch.lut = (ChannelConfig.Lut) v;
           break;
-        case 5:
-          ch.invert = (boolean) v;
-          break;
       }
-      fireTableCellUpdated(r, c);
+      fireTableRowsUpdated(0, Math.max(0, getRowCount() - 1));
       if (dockContrast != null) dockContrast.refreshFromModel();
+      recordChange(null); schedulePreview();
     }
   }
 }

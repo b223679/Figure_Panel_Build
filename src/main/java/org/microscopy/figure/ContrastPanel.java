@@ -15,6 +15,7 @@ public class ContrastPanel extends JPanel {
   private final JSlider brightness = new JSlider(0, 10000, 5000),
       contrast = new JSlider(0, 10000, 5000);
   private final JComboBox<ChannelConfig.Lut> lut = new JComboBox<>(ChannelConfig.Lut.values());
+  private final JCheckBox invert = new JCheckBox("Invert gray");
   private final boolean compact;
   private final JSpinner min = new JSpinner(new SpinnerNumberModel(0.0, null, null, 1.0)),
       max = new JSpinner(new SpinnerNumberModel(2000.0, null, null, 1.0));
@@ -35,11 +36,16 @@ public class ContrastPanel extends JPanel {
     setLayout(new BorderLayout());
     setBorder(BorderFactory.createTitledBorder("B&C — shared across all conditions"));
     strip.setLayout(new BoxLayout(strip, BoxLayout.X_AXIS));
-    JPanel top = new JPanel();
+    JPanel top = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 3));
+    selector.setPreferredSize(new Dimension(140, 26));
+    lut.setPreferredSize(new Dimension(95, 26));
     top.add(new JLabel("Channel"));
     top.add(selector);
     top.add(new JLabel("LUT"));
     top.add(lut);
+    invert.setName("invertGray");
+    invert.setToolTipText("Invert grayscale display only; source pixels remain unchanged.");
+    top.add(invert);
     add(top, BorderLayout.NORTH);
     if (!compact) add(new JScrollPane(strip), BorderLayout.CENTER);
     JPanel bottom = new JPanel();
@@ -81,6 +87,10 @@ public class ContrastPanel extends JPanel {
       timer.restart();
       changed.run();
     });
+    invert.addActionListener(e -> {
+      if (updating || selector.getSelectedIndex() < 0) return;
+      current().invert = invert.isSelected(); timer.restart(); changed.run();
+    });
     reset.addActionListener(e -> resetRange());
     auto.addActionListener(
         e -> {
@@ -98,7 +108,7 @@ public class ContrastPanel extends JPanel {
     if (!c.channels.isEmpty()) select();
     else {
       for (JSlider slider : new JSlider[] {low, high, brightness, contrast}) slider.setEnabled(false);
-      min.setEnabled(false); max.setEnabled(false); lut.setEnabled(false);
+      min.setEnabled(false); max.setEnabled(false); lut.setEnabled(false); invert.setEnabled(false);
       auto.setEnabled(false); reset.setEnabled(false);
     }
   }
@@ -112,6 +122,8 @@ public class ContrastPanel extends JPanel {
       }
     }
   }
+
+  public int selectedChannel() { return selector.getSelectedIndex() < 0 ? -1 : current().index; }
 
   public void refreshFromModel() {
     int selected = selector.getSelectedIndex();
@@ -178,6 +190,7 @@ public class ContrastPanel extends JPanel {
       min.setValue(cc.min);
       max.setValue(cc.max);
       lut.setSelectedItem(cc.lut);
+      invert.setSelected(cc.invert);
       low.setValue((int) Math.round(10000 * (cc.min - rangeMin) / (rangeMax - rangeMin)));
       high.setValue((int) Math.round(10000 * (cc.max - rangeMin) / (rangeMax - rangeMin)));
       brightness.setValue((int) Math.round(10000 * (1 - ((cc.min + cc.max) / 2 - rangeMin) / (rangeMax - rangeMin))));
