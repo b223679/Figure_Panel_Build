@@ -2,6 +2,21 @@
 
 Condition × DisplayChannelから、元画像を変更せずRGB TIFF・PNG・編集可能なPPTXのfigureを作成するSciJava/Swingプラグインです。
 
+## 2026-09-09: Inset / Free build
+
+- 提供されたClaude Code版のInset・Designタブ・ドラッグ選択枠修正を取り込みました。通常モードの既存機能は維持しています。
+- Design内のInsetタブは、パネル選択後に「Show inset」をオンにすると設定が展開します。初期値はオフです。
+- Insetサイズは「Same as ROI」が初期設定。ROIの縦横比と形状を維持し、Magnificationで拡大倍率を指定します（初期3倍、1〜100倍）。円形ROIなら楕円／円形Insetになります。「Custom width / height」では矩形の縦横を独立に指定できます。旧Inset設定JSONは従来の幅・高さを維持します。
+- 上部の「Free mode OFF」を押すと、Figure消去の確認後に行数・列数を入力します。通常のCondition×Channelとは独立した編集画面になります。OFFへ戻る場合も確認し、空の通常Figureから開始します。確認・グリッド入力をキャンセルすれば現在のFigureを維持します。
+- Free buildの空きパネルをクリックし、TIFF→Channelの順に選択します。複数Channel選択でMerge。配置済み画像はクリックで設定を編集し、ダブルクリック／Select Imageで差し替えます。画像サイズやChannel数が異なるTIFFも使え、縦横比を保ってパネル内に収めます。
+- B&C / LUT / Invert grayはパネルごとに独立。「Apply B&C / LUT to row / column」で、そのパネルにあるChannel番号に対応する設定を同じ行／列へコピーします。空きパネル・対応しないChannelは変更しません。
+- 行・列・パネルラベルは手入力です。「Show image name instead of image」は選択パネルだけをファイル名表示へ切り替え、保存結果にも反映します。
+- 灰色背景・＋・選択枠は編集画面専用。空きパネルは出力時にFigure背景だけとなり、PPTXには空きパネルのオブジェクトを作りません。
+- Free buildにも個別Inset／スケールバー、TIFF・PNG・PPTX出力、設定JSON、Undo/Redoを用意しています。Free build設定は通常設定と別形式なので対応するモードで読み込んでください。
+- PPTXの各画像・手入力ラベル・ファイル名は独立して移動／編集可能です。Insetは画像に焼き込みます。Free buildのスケールバーもパネル画像に含みます（通常モードのPPTXスケールバーは従来どおり独立オブジェクト）。
+
+実装・検証・引継ぎの詳細は [HANDOFF.md](HANDOFF.md) と [VALIDATION.md](VALIDATION.md) を参照してください。
+
 ## Fijiへの導入
 
 1. `dist/figure-panel-builder-1.0.0.jar`をFijiの`plugins`フォルダにコピーします。

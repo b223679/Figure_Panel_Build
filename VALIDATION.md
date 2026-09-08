@@ -1,5 +1,24 @@
 # 検証結果
 
+## 2026-09-09 Inset改訂・独立Free build
+
+- 受領した`引継ぎ資料/`を`333bba5`で保存した後、13ファイルの差分を取り込み。既存履歴・受領資料・元TIFFは保持。
+- 増分`build.ps1`成功。JUnit 37件、失敗0・エラー0。追加7件はInset既定値・縦横比／独立サイズ、円形切抜き、設定UI展開、個別B&Cと行列コピー、異なる画像サイズと空白出力、Free設定保存復元、旧Inset JSON互換性。
+- `FreeBuildUiValidation`を既存Fijiに接続しない別JVMで実行し、実Swingウィンドウのイベント・ボタン・ファイル選択ダイアログを使用。以下すべて成功。
+  - 通常→Freeの確認／キャンセル、グリッド指定、Free→通常の確認／キャンセル、OFF後に空Figureへ移行。
+  - 空きパネルのクリック→TIFF選択→Channel選択、Merge配置。
+  - 手入力ラベル、画像名表示モード、独立B&C、明示的な行・列への設定コピー。
+  - Insetがオフから始まり、チェックで展開すること。
+  - Remove確認／キャンセル、Ctrl+Z/Ctrl+Yに登録されたSwing Action経由のUndo/Redo。
+  - Generate TIF、保存ボタン経由のRGB TIFF／PNG／PPTX／JSON、設定再読込。
+  - 元Control.tifのSHA-256が操作前後で一致。
+- Free最終画面・出力: `artifacts/free-ui-2551238016914620785/`。`free-layout.png`で右ペインに横スクロールや入力欄の欠けがないことを目視確認。`free-inset.png`でROI／拡大枠を確認。
+- 通常モードの`DirectManipulationValidation`も成功。起動時画像選択、＋Condition、Channel/Merge、両軸並べ替え、Swap、ドラッグ強調、ゴミ箱、Undo/Redo、共通B&C・LUT・Invert、Style、全出力、設定復元を確認。出力: `artifacts/direct-ui-3367890617274962337/`。
+- キーボード確認は登録キーからSwing Actionを呼び出す経路。OSレベルのキー送信や、現在のユーザーFijiプロセスへの接続は行っていない。
+- Free PPTXはZIP内の画像数・編集可能なテキスト要素・空きセルのプレースホルダ非出力を自動検査。今回のFree PPTXについてPowerPoint本体での再検証は行っていない。
+
+制約: Free buildは1〜20行／列、最大1億出力px。通常モードのTIFF入力条件（2D、8/16/32-bit、Z/Tなし、RGB入力なし）は共通。Freeでは異なる画像寸法・Channel数を許容し、パネルに縦横比を保って収める。Undo/Redoはモード間には引き継がず、保存ファイルの書込みはUndoしない。
+
 ## 2026-09-08 Figure直接操作・Undo/Redo
 
 - Gitは初期化済み・コミットなしだったため、既存ソース／設定例をbaseline `f63f429`として保存。既存ファイルのreset/revert/deleteは行っていない。履歴管理を`c741d3b`、主要UI変更を`a13dd1f`で段階的にコミット。
