@@ -27,12 +27,11 @@ public class AppearanceUiValidation {
     if (!new FileSaver(image).saveAsTiff(sourceFile.getAbsolutePath())) throw new AssertionError("Could not write test image");
     try {
       SwingUtilities.invokeAndWait(() -> {
-        dialog = new FigurePanelBuilderDialog(); dialog.setTitle("Appearance QA — temporary test window");
+        dialog = new FigurePanelBuilderDialog(false); dialog.setTitle("Appearance QA — temporary test window");
         if ((dialog.getExtendedState() & JFrame.MAXIMIZED_BOTH) != JFrame.MAXIMIZED_BOTH)
           throw new AssertionError("Window must start maximized");
         dialog.setVisible(true);
         dialog.addFiles(Collections.singletonList(sourceFile));
-        button(dialog, "B&C").doClick(); button(dialog, "Settings / Sources").doClick();
         try {
           ((JTabbedPane) field(dialog, "tabs")).setSelectedIndex(1);
           named(dialog, JCheckBox.class, "showScaleBar").doClick();

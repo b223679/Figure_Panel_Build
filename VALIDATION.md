@@ -1,5 +1,41 @@
 # 検証結果
 
+## 2026-09-08 Figure直接操作・Undo/Redo
+
+- Gitは初期化済み・コミットなしだったため、既存ソース／設定例をbaseline `f63f429`として保存。既存ファイルのreset/revert/deleteは行っていない。履歴管理を`c741d3b`、主要UI変更を`a13dd1f`で段階的にコミット。
+- 前回の補助ライブラリ復旧結果を確認。同一版26.905.11957の公式アーカイブと7,796ファイルの照合・Artifact Tool import成功を確認済み（artifacts/runtime-recovery/restoration.json）。今回の作業では増分ビルドだけを使用。build.ps1にはclean前のリンク／ジャンクション検査を追加。
+- 最終ビルド成功、JUnit 30テスト、失敗0・エラー0。履歴の独立性・連続編集の集約・Undo後の分岐・空レイアウトと初期化状態の復元を追加検証。
+- `DirectManipulationValidation`を既存Fijiとは別のJVMで実行。合成Control/HPR/KO画像を使用し、以下を実Swingウィンドウで確認。
+
+| 確認内容 | 結果 |
+|---|---|
+| 起動直後のSelect Images、上部Select Images、＋Condition | 同一選択UIで画像追加成功、キャンセル成功 |
+| ＋Channel / Merge | 単独追加・3チャネルmerge追加成功 |
+| Condition / Channel並べ替え、Swap | ドラッグと両軸の対応を確認 |
+| ドラッグ表示 | 対象の半透明＋枠、挿入先ライン、ゴミ箱hoverの強調を目視確認 |
+| ゴミ箱Drop | 通常配置・軸交換後のCondition/Channel/Merge除外、確認・キャンセル成功 |
+| 全Condition削除後 | Channel表の選択でB&Cのnull参照が起きないこと、Undoで最後のConditionが復元されることを確認 |
+| Undo / Redo | Ctrl+Z/Ctrl+Yの登録キーからActionを起動し、追加・削除・名前・B&Cなどを復元。上部アイコンも同じ処理を使用 |
+| 名前・LUT・B&C・Invert gray | 元チャネルの共通設定に反映し、mergeの名前も追随 |
+| Label / Scale bar | Style画面で変更し、Undo/Redo・設定再読込後も保持 |
+| Generate TIF | 従来と同じ24-bit RGB ImagePlusを生成 |
+| Save RGB TIFF / PNG / PPTX | 実際の保存ボタンとファイル選択画面から保存成功 |
+| Save settings / Load settings | 相対ソースパスを含むJSON保存・再読込成功、構成とStyleを保持 |
+| 元TIFの保護 | 3ファイルが残存し、操作前後のSHA-256一致 |
+| 右ペインと画面サイズ | Label nameの外側スクロール不要。最大化・1280×800で両表と操作ボタン、B&C、ゴミ箱の収まりを確認 |
+
+最終実行出力: `artifacts/direct-ui-5112190191842314320/`。画面、ドラッグ中の画像、TIFF/PNG/PPTX、設定JSONを保存。テストはアプリ内のイベントとキー割当経路を使用し、ユーザーの既存Fijiウィンドウには接続していない。
+
+主な変更ファイル:
+
+- `FigurePanelBuilderDialog.java`: 共通画像選択、起動時選択、表／タブ／ツールバー整理、削除確認、履歴UI連携。
+- `FigureWorkspace.java`: Figure内Swap、ドラッグ対象と挿入先表示、ゴミ箱Drop、Escキャンセル。
+- `ContrastPanel.java`: Invert grayと履歴に使う対象チャネル情報。
+- `FigureHistory.java`: 最大100操作の設定履歴、不変の画像スナップショットの共有。
+- `FigureIcons.java` / `TrashTarget.java`: Swap・Undo/Redo・ゴミ箱のアイコンとDrop強調。
+- `FigureHistoryTest.java` / `DirectManipulationValidation.java` / 既存UI検証2ファイル: 履歴・操作・保存の確認。
+- `.gitignore` / `AGENTS.md` / `build.ps1` / `README.md` / `VALIDATION.md`: Git運用、削除事故防止、操作説明と検証記録。
+
 ## 2026-09-08 最大化・透過・編集可能PPTX
 
 - 最終ビルド成功、27テスト、失敗0・エラー0。

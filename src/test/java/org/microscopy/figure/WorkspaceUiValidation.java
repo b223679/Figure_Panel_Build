@@ -17,7 +17,7 @@ public class WorkspaceUiValidation {
     try {
       SwingUtilities.invokeAndWait(() -> {
         RepaintManager.currentManager(new JPanel()).setDoubleBufferingEnabled(false);
-        dialog = new FigurePanelBuilderDialog();
+        dialog = new FigurePanelBuilderDialog(false);
         dialog.setSize(1380, 940);
         dialog.setVisible(true);
         dialog.addFiles(Arrays.asList(new File("test-data/Control.tif"), new File("test-data/HPR.tif"), new File("test-data/KO.tif")));
@@ -59,19 +59,19 @@ public class WorkspaceUiValidation {
       waitPreview();
       capture("workspace-figure.png");
       SwingUtilities.invokeAndWait(() -> button(dialog, "B&C").doClick());
-      SwingUtilities.invokeAndWait(() -> button(dialog, "⇄  Swap rows / columns").doClick());
+      SwingUtilities.invokeAndWait(() -> button(dialog, "Swap").doClick());
       waitPreview();
       capture("workspace-transposed.png");
       SwingUtilities.invokeAndWait(() -> {
-        AbstractButton toggle = button(dialog, "Settings / Sources");
-        toggle.doClick();
+        AbstractButton toggle = button(dialog, "Labels / Scale");
+        if (!toggle.isSelected()) toggle.doClick();
         layout(dialog.getContentPane());
       });
       waitPreview();
       capture("workspace-settings.png");
       SwingUtilities.invokeAndWait(() -> {
         try {
-          button(dialog, "Settings / Sources").doClick();
+          button(dialog, "Labels / Scale").doClick();
           SettingsSerializer serializer = new SettingsSerializer();
           SettingsSerializer.Loaded loaded = serializer.load(new File("test-data/example-settings.json"));
           FigureConfiguration c = loaded.configuration;
