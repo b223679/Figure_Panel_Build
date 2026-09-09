@@ -221,3 +221,6 @@ Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/f
 
 ## ファイル選択の初期フォルダ
 画像・設定の保存と設定の読み込みは、選択中の画像のフォルダを初期表示します。未選択の場合は図で使用中の画像、次に Fiji の現在の画像を参照し、有効な保存元がなければ標準フォルダを使用します。通常モード・Free build 共通です。
+
+## Free build mode
+上部メニューバーの右から `Free mode` が選択できます。Free modeは現在未完成です。
