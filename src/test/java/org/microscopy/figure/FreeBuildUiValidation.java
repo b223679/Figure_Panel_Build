@@ -21,10 +21,10 @@ public class FreeBuildUiValidation {
   static AtomicReference<Throwable> failure=new AtomicReference<>();
   public static void main(String[] args) throws Exception {
     output=Files.createTempDirectory(Paths.get("artifacts"),"free-ui-");
-    byte[] original=MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(Paths.get("test-data/Control.tif")));
+    byte[] original=MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(Paths.get("test-data/Image A.tif")));
     try {
       edt(()->{
-        new ij.io.Opener().openImage(new File("test-data/Control.tif").getAbsolutePath()).show();
+        new ij.io.Opener().openImage(new File("test-data/Image A.tif").getAbsolutePath()).show();
         FigurePanelBuilderDialog normal=new FigurePanelBuilderDialog(false);normal.setVisible(true);
         respond(w->title(w).equals("Free build"),w->pane(w).setValue(JOptionPane.CANCEL_OPTION));
         button(normal,"Free mode OFF").doClick();check(normal.isDisplayable(),"Cancelled switch retains normal editor");
@@ -41,7 +41,7 @@ public class FreeBuildUiValidation {
         List<JTextField> text=all((Container)field(dialog,"editor"),JTextField.class);
         // Text fields with 20 columns are the manual label fields, excluding spinner editors.
         List<JTextField> names=new ArrayList<>();for(JTextField f:text)if(f.getColumns()==20)names.add(f);
-        names.get(0).setText("Control row");names.get(1).setText("Condition A");names.get(2).setText("Manual panel label");
+        names.get(0).setText("Image A row");names.get(1).setText("Condition A");names.get(2).setText("Manual panel label");
         ContrastPanel bc=(ContrastPanel)field(dialog,"contrast");
         JSpinner min=(JSpinner)field(bc,"min");min.setValue(10.0);
         check(config().panels.get(1).image.channel(1).min!=10,"B&C initially independent");
@@ -77,7 +77,7 @@ public class FreeBuildUiValidation {
         respond(w->title(w).equals("Figure Panel Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Free mode ON").doClick();check(!dialog.isDisplayable(),"Off clears free editor");
         for(Window window:Window.getWindows())if(window instanceof FigurePanelBuilderDialog && window.isDisplayable())check(((FigureConfiguration)field(window,"config")).conditions.isEmpty(),"Normal figure reset");
       });
-      check(Arrays.equals(original,MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(Paths.get("test-data/Control.tif")))) ,"Source TIFF unchanged");
+      check(Arrays.equals(original,MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(Paths.get("test-data/Image A.tif")))) ,"Source TIFF unchanged");
       System.out.println("PASS Free build GUI: mode confirmation, selection, Merge, per-panel B&C, axis copy, manual labels, inset, name mode, remove, Undo/Redo, all exports, settings, source integrity. " + output);
     } finally { edt(()->{for(Window window:Window.getWindows())window.dispose();}); }
     System.exit(0);
@@ -86,7 +86,7 @@ public class FreeBuildUiValidation {
     edt(()->{
       if (slot == 1) {
         respond(w->title(w).equals("Select Images"),w->pane(w).setValue("Open TIFF files..."));
-        choose(new File("test-data/Control.tif"));
+        choose(new File("test-data/Image A.tif"));
       } else respond(w->title(w).equals("Select Images"),w->{all(w,JList.class).get(0).setSelectedIndex(0);pane(w).setValue("Add selected");});
       respond(w->title(w).equals("Select Channels"),w->{all(w,JList.class).get(0).setSelectedIndices(channels);pane(w).setValue(JOptionPane.OK_OPTION);});
       click(slot);

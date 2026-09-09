@@ -55,7 +55,7 @@ class AppearanceTest {
     c.channels.add(new ChannelConfig(2, "Marker", ChannelConfig.Lut.Red));
     c.displayChannels.add(new DisplayChannel("Merge", true, 1, 2));
     c.conditions.add(new ConditionConfig());
-    c.conditions.get(0).label = "Control";
+    c.conditions.get(0).label = "Image A";
     c.labels.showRows = c.labels.showColumns = true;
     assertEquals("DNA/Marker", c.displayLabel(c.displayChannels.get(0)));
     for (boolean rows : new boolean[] {true, false}) {
@@ -82,7 +82,7 @@ class AppearanceTest {
     c.channels.add(new ChannelConfig(3, "magenta", ChannelConfig.Lut.Magenta));
     c.displayChannels.add(new DisplayChannel("Merge", true, 1, 2, 3));
     c.conditions.add(new ConditionConfig());
-    c.conditions.get(0).label = "Control";
+    c.conditions.get(0).label = "Image A";
     c.labels.showRows = c.labels.showColumns = true;
     for (boolean rows : new boolean[] {true, false}) {
       c.rowsAreChannels = rows;

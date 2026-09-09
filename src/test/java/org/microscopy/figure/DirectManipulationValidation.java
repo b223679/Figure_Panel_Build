@@ -26,7 +26,7 @@ public class DirectManipulationValidation {
   public static void main(String[] args) throws Exception {
     output = Files.createTempDirectory(Paths.get("artifacts"), "direct-ui-");
     Map<Path, byte[]> hashes = new LinkedHashMap<>();
-    for (String name : new String[] {"Control", "HPR", "KO"}) {
+    for (String name : new String[] {"Image A", "Image B", "Image C"}) {
       Path file = Paths.get("test-data", name + ".tif"); hashes.put(file, hash(file));
     }
     try {
@@ -69,7 +69,7 @@ public class DirectManipulationValidation {
       edt(() -> {
         Point a = cellPoint(0, 0), b = cellPoint(0, 2);
         drag(a, b, false); captureUnchecked("direct-drag-column.png"); release(b);
-        check(config().conditions.get(2).label.equals("Control"), "Condition column reorder");
+        check(config().conditions.get(2).label.equals("Image A"), "Condition column reorder");
       });
       waitPreview();
       edt(() -> {

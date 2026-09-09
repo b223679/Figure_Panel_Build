@@ -153,7 +153,7 @@ class InsetFreeBuildTest {
     }
   }
   @Test void settingsPreservePerPanelToneNamesInsetAndEmptySlots() throws Exception {
-    InputImageManager inputs=new InputImageManager();InputImageManager.Source s=inputs.load(new File("test-data/Control.tif"));
+    InputImageManager inputs=new InputImageManager();InputImageManager.Source s=inputs.load(new File("test-data/Image A.tif"));
     FreeBuildConfiguration c=new FreeBuildConfiguration(2,3);
     c.panels.get(0).image=FreeBuildConfiguration.image(s,new Integer[]{1,2},inputs);c.panels.get(0).image.channel(1).max=123;
     c.panels.get(0).image.conditions.get(0).insets.add(new InsetCell());c.panels.get(0).image.insetCell(0,0).enabled=true;
@@ -166,7 +166,7 @@ class InsetFreeBuildTest {
     assertThrows(IllegalArgumentException.class,()->FreeBuildSettings.save(new File(s.path),c,inputs));
   }
   @Test void oldInsetSettingsKeepExplicitDimensions() throws Exception {
-    InputImageManager inputs=new InputImageManager();InputImageManager.Source s=inputs.load(new File("test-data/Control.tif"));
+    InputImageManager inputs=new InputImageManager();InputImageManager.Source s=inputs.load(new File("test-data/Image A.tif"));
     FigureConfiguration c=FreeBuildConfiguration.image(s,new Integer[]{1},inputs);c.inset.insetWidth=73;
     Path file=temp.resolve("legacy.json");new SettingsSerializer().save(file.toFile(),c,inputs);
     String json=new String(Files.readAllBytes(file),StandardCharsets.UTF_8).replaceAll("(?m)^.*\\\"sameAsRoi\\\".*\\R","");

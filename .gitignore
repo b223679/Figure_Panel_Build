@@ -4,5 +4,6 @@ target/
 artifacts/
 dist/*
 !dist/figure-panel-builder-1.0.0.jar
+!dist/figure_panel_builder_testset.zip
 引継ぎ資料/codex/
 docs/handoff/codex/

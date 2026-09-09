@@ -27,8 +27,16 @@
 
 ### 設定ファイルから試す
 
+1. [figure_panel_builder_testset.zip をダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure_panel_builder_testset.zip)して、任意のフォルダに**すべて展開**します。
+2. プラグインを起動し、最初の画像選択ダイアログを閉じて `Load settings` から展開先の `example-settings.json` を開きます。
+3. **Image A / Image B / Image C × Green / Red / Merge** のサンプルが表示されます。
+
+ZIP には設定 JSON と合成画像 `Image A.tif`・`Image B.tif`・`Image C.tif` が入っています。展開後も4ファイルを同じフォルダに置いてください。
+
+#### 個別にダウンロードする場合
+
 1. [example-settings.json をダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/example-settings.json)します。ブラウザに内容が表示される場合は、リンクを右クリックして「名前を付けてリンク先を保存」してください（拡張子は `.json`）。
-2. 合成サンプル画像 [Control.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/Control.tif)・[HPR.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/HPR.tif)・[KO.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/KO.tif) もダウンロードし、**JSON と同じフォルダ**に元のファイル名で保存します。
+2. 合成サンプル画像 [Image A.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/Image%20A.tif)・[Image B.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/Image%20B.tif)・[Image C.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/Image%20C.tif) もダウンロードし、**JSON と同じフォルダ**に元のファイル名で保存します。
 3. プラグインを起動し、最初の画像選択ダイアログを閉じて `Load settings` から保存した `example-settings.json` を開きます。**3 条件 × Green / Red / Merge** のサンプルが表示されます。
 
 JSON に画像データは含まれないため、4 ファイルすべてが必要です。[リポジトリ全体を ZIP でダウンロード](https://github.com/b223679/Figure_Panel_Build/archive/refs/heads/master.zip)して展開する場合は、同梱の `test-data/example-settings.json` をそのまま開けます。
@@ -208,7 +216,7 @@ JDK 8 互換バイトコードを JDK 21 と Maven 3.9.9 で生成します。Im
 Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/figure-panel-builder-1.0.0.jar
 ```
 
-`dist/figure-panel-builder-1.0.0.jar` と `test-data/` のサンプルは Git 管理対象です。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
+`dist/figure-panel-builder-1.0.0.jar`・`dist/figure_panel_builder_testset.zip` と `test-data/` のサンプルは Git 管理対象です。サンプルを更新した際は `./package-testset.ps1` で配布 ZIP を更新してください（画像は再生成せず、現在の4ファイルをまとめます）。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
 
 詳細は [`IMPLEMENTATION_PLAN.md`](docs/development/IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](docs/development/VALIDATION.md) を参照してください。
 

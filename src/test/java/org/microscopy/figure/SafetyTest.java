@@ -14,13 +14,13 @@ class SafetyTest {
   @Test
   void openImageRetainsSourcePathForProtection() throws Exception {
     TestImageGenerator.generate(temp);
-    ImagePlus image = new Opener().openImage(temp.resolve("Control.tif").toString());
+    ImagePlus image = new Opener().openImage(temp.resolve("Image A.tif").toString());
     InputImageManager in = new InputImageManager();
     InputImageManager.Source source = in.snapshot(image, null);
     assertNotNull(source.path);
     assertThrows(
         IllegalArgumentException.class,
-        () -> OutputSafety.checkDestination(temp.resolve("Control.tif").toFile(), in));
+        () -> OutputSafety.checkDestination(temp.resolve("Image A.tif").toFile(), in));
     OutputSafety.checkDestination(temp.resolve("output.tif").toFile(), in);
   }
 

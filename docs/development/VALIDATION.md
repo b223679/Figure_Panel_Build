@@ -117,3 +117,10 @@
 - この文書の過去の `artifacts/` パスは実行当時の記録であり、画像の現存・配布を保証しない。`archive/` はユーザーによる整理で削除済み。Git 管理外だった出力は Git 履歴からは復元できない。
 - 製品コード・設定 JSON・画像出力処理は変更なし。ユーザーの Fiji プロセス・開画像には接続していない。
 - `build.ps1` の増分 verify 成功: 46 tests, 0 failures, 0 errors, 0 skipped。初回は依存 JAR のアクセス制限で失敗し、権限付き再実行で成功。ビルド JAR と配布 JAR の SHA-256 一致、サンプル JSON/TIFF の Git 差分なし、README 類のローカルリンク先と配布用 raw リンクの対応ファイルの存在を確認。GitHub 上の更新後のダウンロード確認は push 後に必要。
+
+## 2026-09-09: サンプル名の統一と ZIP 配布
+
+- Control → Image A、HPR → Image B、KO → Image C にファイル名・設定例のラベルと相対パス・テストと生成コードを統一。TIFF は再生成せず名前だけ変更し、変更前後の SHA-256 一致を確認。
+- `dist/figure_panel_builder_testset.zip` に設定 JSON と TIFF 3 枚を同じ階層で格納。README の主手順を ZIP のダウンロード・展開・設定読込に変更。`package-testset.ps1` で現在のサンプルから再作成可能。
+- ZIP 内の4ファイルが元ファイルと SHA-256 一致、JSON の全参照先が ZIP 内に存在することを確認。
+- 増分 `build.ps1` verify 成功: 46 tests, 0 failures, 0 errors, 0 skipped。製品コード・配布 JAR は変更なし。既存 Fiji プロセス・開画像の操作なし。

@@ -33,7 +33,7 @@ public class TestImageGenerator {
           new ShortProcessor(w, h, pixels, null));
     }
     ImagePlus image =
-        new ImagePlus(new String[] {"Control", "HPR", "KO"}[condition] + ".tif", stack);
+        new ImagePlus(new String[] {"Image A", "Image B", "Image C"}[condition] + ".tif", stack);
     image.setDimensions(3, 1, 1);
     image.setOpenAsHyperStack(true);
     image.getCalibration().pixelWidth = 0.25;

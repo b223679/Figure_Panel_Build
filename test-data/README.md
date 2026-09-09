@@ -1,6 +1,8 @@
 # 合成テストデータ
 
-Control.tif / HPR.tif / KO.tifの3枚です。実験データではありません。
+[設定と画像を ZIP でダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure_panel_builder_testset.zip)し、すべて展開して `example-settings.json` を読み込むと試せます。ZIP の更新はプロジェクトルートで `./package-testset.ps1` を実行します。
+
+Image A.tif / Image B.tif / Image C.tifの3枚です。実験データではありません。
 
 - 各256×192、16-bit unsigned、C=3、Z=1、T=1のImageJ hyperstack TIFF
 - Channel 1=Green、2=Red、3=Blue

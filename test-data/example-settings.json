@@ -32,15 +32,15 @@
     "verticalGap": 5,
     "conditions": [
       {
-        "label": "Control",
+        "label": "Image A",
         "sourceId": "a657b81b-6d59-44ff-9415-7ae48c37c3ba"
       },
       {
-        "label": "HPR",
+        "label": "Image B",
         "sourceId": "2af242e2-b13d-4077-9a33-e5577dc7fa5b"
       },
       {
-        "label": "KO",
+        "label": "Image C",
         "sourceId": "64535c0b-b8ba-435f-a9cd-6bbf95b98e6c"
       }
     ],
@@ -100,8 +100,8 @@
     "manualColumns": 3
   },
   "sources": {
-    "a657b81b-6d59-44ff-9415-7ae48c37c3ba": "Control.tif",
-    "2af242e2-b13d-4077-9a33-e5577dc7fa5b": "HPR.tif",
-    "64535c0b-b8ba-435f-a9cd-6bbf95b98e6c": "KO.tif"
+    "a657b81b-6d59-44ff-9415-7ae48c37c3ba": "Image A.tif",
+    "2af242e2-b13d-4077-9a33-e5577dc7fa5b": "Image B.tif",
+    "64535c0b-b8ba-435f-a9cd-6bbf95b98e6c": "Image C.tif"
   }
 }

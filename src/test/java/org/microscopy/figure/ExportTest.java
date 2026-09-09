@@ -48,7 +48,7 @@ class ExportTest {
     source.getCalibration().setUnit("µm"); source.getCalibration().pixelWidth=.25;
     InputImageManager.Source s=inputs.snapshot(source,null);
     FigureConfiguration c=new FigureConfiguration();
-    c.conditions.add(new ConditionConfig("Control & <test> 日本語",s.id));
+    c.conditions.add(new ConditionConfig("Image A & <test> 日本語",s.id));
     c.channels.add(new ChannelConfig(1,"DNA",ChannelConfig.Lut.Blue));
     c.channels.add(new ChannelConfig(2,"Marker",ChannelConfig.Lut.Green));
     c.displayChannels.add(new DisplayChannel("DNA",false,1));
@@ -63,7 +63,7 @@ class ExportTest {
       Document slide=parse(z,"ppt/slides/slide1.xml");
       assertEquals(2,slide.getElementsByTagNameNS(p,"pic").getLength());
       assertEquals(7,slide.getElementsByTagNameNS(p,"sp").getLength());
-      assertTrue(slide.getDocumentElement().getTextContent().contains("Control & <test> 日本語"));
+      assertTrue(slide.getDocumentElement().getTextContent().contains("Image A & <test> 日本語"));
       assertTrue(slide.getDocumentElement().getTextContent().contains("DNA/Marker"));
       assertTrue(slide.getDocumentElement().getTextContent().contains("20 µm"));
       boolean blue=false;

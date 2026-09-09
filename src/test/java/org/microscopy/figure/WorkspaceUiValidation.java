@@ -20,7 +20,7 @@ public class WorkspaceUiValidation {
         dialog = new FigurePanelBuilderDialog(false);
         dialog.setSize(1380, 940);
         dialog.setVisible(true);
-        dialog.addFiles(Arrays.asList(new File("test-data/Control.tif"), new File("test-data/HPR.tif"), new File("test-data/KO.tif")));
+        dialog.addFiles(Arrays.asList(new File("test-data/Image A.tif"), new File("test-data/Image B.tif"), new File("test-data/Image C.tif")));
         layout(dialog.getContentPane());
       });
       waitPreview();

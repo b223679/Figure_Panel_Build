@@ -19,8 +19,8 @@ class IntegrationTest {
     FigureConfiguration config = new FigureConfiguration();
     byte[] before =
         MessageDigest.getInstance("SHA-256")
-            .digest(Files.readAllBytes(temp.resolve("Control.tif")));
-    for (String name : new String[] {"Control", "HPR", "KO"}) {
+            .digest(Files.readAllBytes(temp.resolve("Image A.tif")));
+    for (String name : new String[] {"Image A", "Image B", "Image C"}) {
       InputImageManager.Source s = inputs.load(temp.resolve(name + ".tif").toFile());
       assertEquals(3, s.channels);
       assertEquals(16, s.bitDepth);
@@ -64,10 +64,10 @@ class IntegrationTest {
     assertArrayEquals(
         before,
         MessageDigest.getInstance("SHA-256")
-            .digest(Files.readAllBytes(temp.resolve("Control.tif"))));
+            .digest(Files.readAllBytes(temp.resolve("Image A.tif"))));
     assertThrows(
         IllegalArgumentException.class,
-        () -> json.save(temp.resolve("Control.tif").toFile(), config, inputs));
+        () -> json.save(temp.resolve("Image A.tif").toFile(), config, inputs));
   }
 
   @Test

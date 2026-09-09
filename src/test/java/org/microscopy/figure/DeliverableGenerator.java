@@ -18,7 +18,7 @@ public class DeliverableGenerator {
     InputImageManager inputs = new InputImageManager();
     FigureConfiguration c = new FigureConfiguration();
     List<java.io.File> files = new ArrayList<>();
-    for (String name : new String[] {"Control", "HPR", "KO"}) {
+    for (String name : new String[] {"Image A", "Image B", "Image C"}) {
       java.io.File file = folder.resolve(name + ".tif").toFile();
       files.add(file);
       InputImageManager.Source s = inputs.load(file);

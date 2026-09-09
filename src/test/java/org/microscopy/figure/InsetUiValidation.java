@@ -17,7 +17,7 @@ public class InsetUiValidation {
       SwingUtilities.invokeAndWait(()->{
         FigurePanelBuilderDialog dialog=new FigurePanelBuilderDialog(false);window[0]=dialog;
         dialog.setExtendedState(JFrame.NORMAL);dialog.setSize(1280,800);dialog.setVisible(true);
-        call(dialog,"addFiles",new Class<?>[]{java.util.List.class},java.util.Arrays.asList(new File("test-data/Control.tif")));
+        call(dialog,"addFiles",new Class<?>[]{java.util.List.class},java.util.Arrays.asList(new File("test-data/Image A.tif")));
         FigureConfiguration c=(FigureConfiguration)FreeBuildUiValidation.field(dialog,"config");
         c.displayChannels.add(new DisplayChannel("Second",false,2));call(dialog,"refresh",new Class<?>[0]);
         call(dialog,"selectDisplay",new Class<?>[]{int.class,int.class},0,0);
