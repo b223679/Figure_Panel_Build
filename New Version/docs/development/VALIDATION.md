@@ -98,3 +98,13 @@
 - Swing UIのオフスクリーン描画確認。実際のFijiメニュー起動・ファイルダイアログ・ドラッグ操作の手動E2Eテストは未実施
 
 実装の対象外と操作上の制約はREADME.mdに記載。
+
+## 2026-09-09: Claude 版を基準に整理・保存先を修正
+- 削除前の Old Version と New Version のソース・文書を `552fd12` に保存し、Old Version の追跡対象が HEAD と一致することを削除前に確認。
+- 管理外の旧成果物・ログ・依存ツールはルートの `archive/old-generated/` に保全。New Version の以前の配布物は `archive/previous-new-dist/` に保全。
+- Claude のレイアウト・初期値・LUT・Inset の変更を継承。今回の製品コード変更はファイル選択の初期フォルダに限定。
+- 通常モード / Free build: 選択画像 → 図の使用画像 → Fiji の現在画像 → 標準フォルダの順に解決。TIFF / PNG / PPTX / 設定保存 / 設定読み込みに適用。
+- `build.ps1` verify: 46 tests, 0 failures, 0 errors, 0 skipped; BUILD SUCCESS。
+- 新規回帰テスト: 選択画像の優先順位、無効な親フォルダのフォールバック、未保存画像。
+- 実際のネイティブファイルダイアログの手動操作は未実施。既存 Fiji プロセスおよび入力画像は変更していない。
+- 最新 JAR: `New Version/dist/figure-panel-builder-1.0.0.jar`（リポジトリルートから）。

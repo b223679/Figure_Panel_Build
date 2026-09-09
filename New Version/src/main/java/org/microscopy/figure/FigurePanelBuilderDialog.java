@@ -246,7 +246,7 @@ public class FigurePanelBuilderDialog extends JFrame {
   }
 
   private void chooseFiles() {
-    JFileChooser chooser = new JFileChooser();
+    JFileChooser chooser = imageFileChooser();
     chooser.setMultiSelectionEnabled(true);
     chooser.setFileFilter(new FileNameExtensionFilter("TIFF", "tif", "tiff"));
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
@@ -537,10 +537,18 @@ public class FigurePanelBuilderDialog extends JFrame {
     previewWorker.execute();
   }
 
+  private JFileChooser imageFileChooser() {
+    List<String> ids = new ArrayList<>();
+    int selected = conditions.getSelectedRow();
+    if (selected >= 0 && selected < config.conditions.size())
+      ids.add(config.conditions.get(selected).sourceId);
+    for (ConditionConfig condition : config.conditions) ids.add(condition.sourceId);
+    return new JFileChooser(ImageFileDialogs.directory(inputs, ids));
+  }
   private void settings(boolean load) {
-    JFileChooser chooser = new JFileChooser();
+    JFileChooser chooser = imageFileChooser();
     chooser.setFileFilter(new FileNameExtensionFilter("Settings JSON", "json"));
-    chooser.setSelectedFile(new File("figure-settings.json"));
+    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "figure-settings.json"));
     if ((load ? chooser.showOpenDialog(this) : chooser.showSaveDialog(this))
         != JFileChooser.APPROVE_OPTION) return;
     try {
@@ -725,8 +733,8 @@ public class FigurePanelBuilderDialog extends JFrame {
       JOptionPane.showMessageDialog(this, warning, "Calibration", JOptionPane.WARNING_MESSAGE);
     File destination = null;
     if (save) {
-      JFileChooser chooser = new JFileChooser();
-      chooser.setSelectedFile(new File("figure.tif"));
+      JFileChooser chooser = imageFileChooser();
+      chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "figure.tif"));
       if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
       destination = chooser.getSelectedFile();
       if (!destination.getName().toLowerCase(Locale.ROOT).matches(".*\\.tiff?"))
@@ -758,8 +766,8 @@ public class FigurePanelBuilderDialog extends JFrame {
     String warning = config.calibrationWarning(inputs);
     if (!warning.isEmpty())
       JOptionPane.showMessageDialog(this, warning, "Calibration", JOptionPane.WARNING_MESSAGE);
-    JFileChooser chooser = new JFileChooser();
-    chooser.setSelectedFile(new File("figure." + format));
+    JFileChooser chooser = imageFileChooser();
+    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "figure." + format));
     if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
     File chosen = chooser.getSelectedFile();
     if (!chosen.getName().toLowerCase(Locale.ROOT).endsWith("." + format))

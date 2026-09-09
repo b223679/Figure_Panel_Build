@@ -198,4 +198,8 @@ JDK 8 互換バイトコードを JDK 21 と Maven 3.9.9 で生成します。Im
 
 `build.ps1` は既存の `JAVA_HOME` を優先し、未設定の場合は Fiji 付属 JDK を使用します。`.tools` に Maven がない場合は PATH の `mvn.cmd` を使用します。標準 Maven 環境では `mvn verify` でビルドできます。
 
-詳細は [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](VALIDATION.md) を参照してください。
+詳細は [`IMPLEMENTATION_PLAN.md`](docs/development/IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](docs/development/VALIDATION.md) を参照してください。
+
+
+## ファイル選択の初期フォルダ
+画像・設定の保存と設定の読み込みは、選択中の画像のフォルダを初期表示します。未選択の場合は図で使用中の画像、次に Fiji の現在の画像を参照し、有効な保存元がなければ標準フォルダを使用します。通常モード・Free build 共通です。

@@ -142,7 +142,14 @@ public final class FreeBuildDialog extends JFrame {
   }
 
   private File chooseFile(boolean save,String extension) {
-    JFileChooser chooser = new JFileChooser();
+    ArrayList<String> ids = new ArrayList<>();
+    if (selected >= 0 && selected < config.panels.size()) {
+      FigureConfiguration image = config.panels.get(selected).image;
+      if (image != null) for (ConditionConfig condition : image.conditions) ids.add(condition.sourceId);
+    }
+    for (FreeBuildConfiguration.Panel panel : config.panels)
+      if (panel.image != null) for (ConditionConfig condition : panel.image.conditions) ids.add(condition.sourceId);
+    JFileChooser chooser = new JFileChooser(ImageFileDialogs.directory(inputs, ids));
     chooser.setFileFilter(new FileNameExtensionFilter(extension.equals("tif")?"TIFF images":"Figure "+extension, extension.equals("tif")?new String[]{"tif","tiff"}:new String[]{extension}));
     if ((save?chooser.showSaveDialog(this):chooser.showOpenDialog(this)) != JFileChooser.APPROVE_OPTION) return null;
     File f = chooser.getSelectedFile();
