@@ -1,3 +1,7 @@
-archive/old-generated/
-New Version/.claude/
-archive/previous-new-dist/
+.tools/
+target/
+*.log
+artifacts/
+dist/
+引継ぎ資料/codex/
+docs/handoff/codex/
