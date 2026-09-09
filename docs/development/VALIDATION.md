@@ -107,4 +107,13 @@
 - `build.ps1` verify: 46 tests, 0 failures, 0 errors, 0 skipped; BUILD SUCCESS。
 - 新規回帰テスト: 選択画像の優先順位、無効な親フォルダのフォールバック、未保存画像。
 - 実際のネイティブファイルダイアログの手動操作は未実施。既存 Fiji プロセスおよび入力画像は変更していない。
-- 最新 JAR: `New Version/dist/figure-panel-builder-1.0.0.jar`（リポジトリルートから）。
+- 当時の JAR: `New Version/dist/figure-panel-builder-1.0.0.jar`。フォルダ整理後の配布先は `dist/figure-panel-builder-1.0.0.jar`。
+
+## 2026-09-09: フォルダ整理後の配布・サンプル導線の修正
+
+- `dist/` 全体の除外を見直し、配布 JAR 1 ファイルだけを Git 管理対象に変更。README に直接ダウンロードリンクと配布更新手順を追加。
+- 設定 JSON と合成 TIFF 3 枚のダウンロードリンク、同じフォルダに保存する手順、ZIP 一括取得を追加。サンプルと設定形式は変更なし。
+- `artifacts/` 内の過去の UI スクリーンショット・合成画像・生成フィギュア（PNG/TIFF 計48ファイル）を削除。実体パスとリンクの有無を確認し、画像ファイルだけを個別に削除。`test-data/` の入力 TIFF 3 枚は保持。
+- この文書の過去の `artifacts/` パスは実行当時の記録であり、画像の現存・配布を保証しない。`archive/` はユーザーによる整理で削除済み。Git 管理外だった出力は Git 履歴からは復元できない。
+- 製品コード・設定 JSON・画像出力処理は変更なし。ユーザーの Fiji プロセス・開画像には接続していない。
+- `build.ps1` の増分 verify 成功: 46 tests, 0 failures, 0 errors, 0 skipped。初回は依存 JAR のアクセス制限で失敗し、権限付き再実行で成功。ビルド JAR と配布 JAR の SHA-256 一致、サンプル JSON/TIFF の Git 差分なし、README 類のローカルリンク先と配布用 raw リンクの対応ファイルの存在を確認。GitHub 上の更新後のダウンロード確認は push 後に必要。

@@ -2,6 +2,7 @@
 target/
 *.log
 artifacts/
-dist/
+dist/*
+!dist/figure-panel-builder-1.0.0.jar
 引継ぎ資料/codex/
 docs/handoff/codex/

@@ -17,7 +17,7 @@
 
 ## インストール
 
-1. [`dist/figure-panel-builder-1.0.0.jar`](dist/figure-panel-builder-1.0.0.jar) を Fiji の `plugins` フォルダにコピーします。
+1. [figure-panel-builder-1.0.0.jar をダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure-panel-builder-1.0.0.jar)して、Fiji の `plugins` フォルダにコピーします。
 2. Fiji を再起動します。
 3. メニューから `Plugins > Figure Panel Builder` を選択して起動します。
 
@@ -27,7 +27,11 @@
 
 ### 設定ファイルから試す
 
-`Load settings` → `test-data/example-settings.json` を開くと **3 条件 × Green / Red / Merge** のサンプルが即座に表示されます。
+1. [example-settings.json をダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/example-settings.json)します。ブラウザに内容が表示される場合は、リンクを右クリックして「名前を付けてリンク先を保存」してください（拡張子は `.json`）。
+2. 合成サンプル画像 [Control.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/Control.tif)・[HPR.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/HPR.tif)・[KO.tif](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/test-data/KO.tif) もダウンロードし、**JSON と同じフォルダ**に元のファイル名で保存します。
+3. プラグインを起動し、最初の画像選択ダイアログを閉じて `Load settings` から保存した `example-settings.json` を開きます。**3 条件 × Green / Red / Merge** のサンプルが表示されます。
+
+JSON に画像データは含まれないため、4 ファイルすべてが必要です。[リポジトリ全体を ZIP でダウンロード](https://github.com/b223679/Figure_Panel_Build/archive/refs/heads/master.zip)して展開する場合は、同梱の `test-data/example-settings.json` をそのまま開けます。
 
 ### ゼロから作る
 
@@ -71,7 +75,7 @@
 - **ラベルのクリック**：その行・列ラベル領域に青い選択枠が表示されます（出力には含まれません）。
 - **条件ラベルのダブルクリック**：条件名を編集できます。
 - 長いラベルはフォントサイズを上限として自動縮小します。設定済みフォントサイズ自体は変わりません。
-- **Labels / Scale ボタン**：右ペイン（ラベル・スケールバー設定）を開閉します。
+- **Design ボタン**：右ペイン（ラベル・スケールバー・Inset 設定）を開閉します。
 
 ### Style タブ
 
@@ -197,6 +201,14 @@ JDK 8 互換バイトコードを JDK 21 と Maven 3.9.9 で生成します。Im
 ```
 
 `build.ps1` は既存の `JAVA_HOME` を優先し、未設定の場合は Fiji 付属 JDK を使用します。`.tools` に Maven がない場合は PATH の `mvn.cmd` を使用します。標準 Maven 環境では `mvn verify` でビルドできます。
+
+ビルド結果は `target/figure-panel-builder-1.0.0.jar` です。配布版を更新するときは、`verify` 成功後に次のコマンドでコピーし、ソースと合わせてコミットしてください。
+
+```powershell
+Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/figure-panel-builder-1.0.0.jar
+```
+
+`dist/figure-panel-builder-1.0.0.jar` と `test-data/` のサンプルは Git 管理対象です。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
 
 詳細は [`IMPLEMENTATION_PLAN.md`](docs/development/IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](docs/development/VALIDATION.md) を参照してください。
 

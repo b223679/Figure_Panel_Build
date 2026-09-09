@@ -11,4 +11,6 @@ Control.tif / HPR.tif / KO.tifの3枚です。実験データではありませ�
 
 example-settings.jsonは3×3のGreen/Red/Merge、共通0–2000、Gap=5、ラベル、10 µmバーの例です。パスはこのJSONを基準とした相対パスです。
 
+ダウンロード手順は[README のクイックスタート](../README.md#設定ファイルから試す)を参照してください。JSON と TIFF 3 枚を同じフォルダに置いてください。この 4 ファイルはクイックスタートと回帰テストに必要なため保持します。UI スクリーンショットや生成フィギュアは `artifacts/` に出力し、このフォルダには保存しません。
+
 再生成: プロジェクトルートで`generate-test-data.ps1`。生成コードは`src/test/java/org/microscopy/figure/TestImageGenerator.java`です。再生成するとこのフォルダの合成TIFと設定例を更新します。
