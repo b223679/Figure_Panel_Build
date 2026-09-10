@@ -1,6 +1,6 @@
-# Visual Fig Builder — 顕微鏡画像のFigure Panelを直感的操作で作成
+# Visual Fig Builder - Build microscopy figure panels visually in Fiji.
 
-**論文・発表用に顕微鏡画像をFijiで直感的かつすばやく並べ、PowerPointで各要素を編集できます。**
+**複数Channelの顕微鏡画像を直感的操作で並べ、PowerPointで各要素を編集できます。**
 
 Visual Fig Builderは、蛍光・免疫染色画像からFigure Panelを作成するFijiプラグインです。使いたい画像を追加し、ドラッグ＆ドロップで並べ替え、単ChannelやMerge表示を選んで、完成形を確認しながら図を組み立てられます。
 
@@ -11,7 +11,7 @@ Visual Fig Builderは、蛍光・免疫染色画像からFigure Panelを作成�
 - **見ながら組み立てる直感的な操作**：ドラッグ＆ドロップによる配置変更、行・列の入れ替え、最大100操作のUndo・Redoに対応します。
 - **柔軟なChannel・Merge選択**：単独のChannelや複数ChannelのMergeを表示項目として追加できます。各Channelの明るさ・コントラストとLUTを全条件で共通に保ちます。
 - **インセット機能**：長方形・円形のROIで注目領域を指定し、拡大像をインセットで配置できます。
-- **カスタムデザイン**：画像間の余白、行・列ラベル、スケールバーとバーテキストを自由に設定できます。背景色は白・黒・透過背景から選択できます。
+- **カスタムデザイン**：画像間の余白、行・列ラベル、スケールバーを自由に設定できます。背景色は白・黒・透過背景から選択できます。
 - **TIFF・PNG・編集可能なPowerPointへ出力**：作成したFigure Panelは、RGB TIFF・PNG・PPTXで保存できます。PPTXでは各画像、ラベル、スケールバー、スケールバーの文字、インセットを独立したPowerPointオブジェクトとして配置するため、PowerPointでさらに自由に編集することができます。
 
 ---
