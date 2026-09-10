@@ -124,3 +124,12 @@
 - `dist/figure_panel_builder_testset.zip` に設定 JSON と TIFF 3 枚を同じ階層で格納。README の主手順を ZIP のダウンロード・展開・設定読込に変更。`package-testset.ps1` で現在のサンプルから再作成可能。
 - ZIP 内の4ファイルが元ファイルと SHA-256 一致、JSON の全参照先が ZIP 内に存在することを確認。
 - 増分 `build.ps1` verify 成功: 46 tests, 0 failures, 0 errors, 0 skipped。製品コード・配布 JAR は変更なし。既存 Fiji プロセス・開画像の操作なし。
+
+## 2026-09-10：Visual Fig Builderへの名称変更
+
+- メニュー、通常・自由配置ウィンドウ、ダイアログ、Maven表示名をVisual Fig Builderに統一。
+- READMEの紹介文と特長を日本語で追記。視覚的な配置、チャネル・マージ、インセット、独立オブジェクトのPPTX出力を説明。
+- 設定JSON、内部クラス名、JARファイル名、画像生成・出力処理は維持。
+- `build.ps1`の増分verify成功：46テスト、失敗0、エラー0、スキップ0。初回は依存JARのアクセス制限で失敗し、権限付き再実行で成功。
+- `WorkspaceUiValidation`を独立Javaプロセスで実行してPASS。合成画像によるマージ追加、7条件、軸入れ替え、B&C開閉、設定パネルを確認。既存Fijiと画像ウィンドウは操作していない。
+- 配布JARのSciJava登録が`Plugins>Visual Fig Builder`であることを確認。READMEのJARリンクをリポジトリ内の検証済み配布物への直接リンクに変更。

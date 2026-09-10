@@ -1,6 +1,27 @@
-# Fiji Figure Panel Builder
+# Visual Fig Builder — Fijiで顕微鏡画像のフィギュアを視覚的に作成
 
-顕微鏡画像（TIF/TIFF）を **Condition × Display Channel** のグリッドに自動配置し、ラベル・スケールバーを付けた論文・学会発表用フィギュアを出力する Fiji/ImageJ プラグインです。出力形式は RGB TIFF・PNG・編集可能な PPTX の 3 種類。元画像の画素は一切変更しません。
+**論文・発表用の顕微鏡画像パネルを、Fijiで直感的かつすばやく組み立て、PowerPointで各要素を編集できます。**
+
+Visual Fig Builderは、蛍光・免疫染色画像からフィギュアパネルを作成するFijiプラグインです。使いたい画像を追加し、ドラッグ＆ドロップで並べ替え、単独チャネルやマージ表示を選んで、完成形を確認しながら図を組み立てられます。
+
+複雑な画像選択ルールや多段階のウィザードを設定する必要はありません。行・列の並べ替えや軸の入れ替え、不要な行・列の除去、注目領域のインセット作成まで、同じ画面で操作できます。ラベル、余白、背景、LUT、明るさ・コントラスト、スケールバーもプレビューを見ながら調整できます。
+
+## Visual Fig Builderの特長
+
+- **見ながら組み立てる直感的な操作**：ドラッグ＆ドロップによる配置変更、行・列の入れ替え、最大100操作の元に戻す・やり直しに対応します。
+- **柔軟なチャネル・マージ選択**：単独の蛍光チャネルや複数チャネルのマージを表示項目として追加できます。通常モードでは、各チャネルの明るさ・コントラストとLUTを全条件で共通に保ちます。
+- **インセットをその場で作成**：長方形・円形のROIで注目領域を指定し、拡大像の位置・サイズ・枠を調整できます。
+- **論文・発表向けのラベルとスケールバー**：画像間の余白、行・列ラベル、スケールバーの位置や文字、背景を一つの画面で設定できます。
+- **自分で選んだ画像をすばやく図にする設計**：代表画像の自動選択やデータセット全体の解析ではなく、掲載する画像が決まった後のフィギュア作成を支援します。
+- **TIFF・PNG・編集可能なPowerPointへ出力**：完成図をRGB TIFFまたはPNGで保存でき、仕上げの編集にはPPTXを利用できます。
+
+## PowerPointでも、図の各要素を個別に編集
+
+PPTX出力はVisual Fig Builderの中心的な機能です。図全体を1枚の画像にまとめず、各セル画像、ラベル、スケールバー、スケールバーの文字、インセットを独立したPowerPointオブジェクトとして配置します。
+
+Fijiで画像の表示を調整してパネルを組み立てた後も、PowerPointで各要素の配置、文字、注釈、矢印を調整し、論文や発表用の図へ統合できます。画像オブジェクトは表示設定を反映した画像であり、元の蛍光チャネルをPowerPoint内で再調整するものではありません。
+
+**顕微鏡画像のパネルはFijiで。図の仕上げは、お好みの環境で。**
 
 ---
 
@@ -17,11 +38,13 @@
 
 ## インストール
 
-1. [Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)を開き、**Assets** から `figure-panel-builder-1.0.0.jar` をダウンロードして、Fiji の `plugins` フォルダにコピーします。
+1. [最新版のプラグインJAR](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure-panel-builder-1.0.0.jar)をダウンロードして、Fiji の `plugins` フォルダにコピーします。既存の同名JARがあれば置き換えます。
 2. Fiji を再起動します。
-3. メニューから `Plugins > Figure Panel Builder` を選択して起動します。
+3. メニューから `Plugins > Visual Fig Builder` を選択して起動します。
 
 ---
+
+JARのファイル名と内部クラス名は互換性のため従来の名前を維持しています。メニューとウィンドウの表示名は **Visual Fig Builder** です。設定JSONの形式と画像の出力処理は従来どおりです。
 
 ## クイックスタート
 
@@ -61,7 +84,7 @@ JSON に画像データは含まれないため、4 ファイルすべてが必�
 | ラベルのダブルクリック | チャネル名と LUT を編集（Merge は構成チャネルごとに設定）|
 | `Swap` | 行軸と列軸（Channel ↔ Condition）を入れ替えます |
 
-### Brightness & Contrast
+### 明るさ・コントラスト
 
 - プレビューの画像セルをクリックするとそのチャネルの B&C パネルが下部に表示されます。
 - 上部メニューバーの `B&C` をクリックすることでB&Cパネルを開閉できます。
@@ -82,7 +105,7 @@ JSON に画像データは含まれないため、4 ファイルすべてが必�
 - 長いラベルはフォントサイズを上限として自動縮小します。設定済みフォントサイズ自体は変わりません。
 
 
-### Style タブ
+### スタイル設定（`Style` タブ）
 
 右ペインの`Style` タブでは以下をまとめて設定できます。
 
@@ -97,7 +120,7 @@ JSON に画像データは含まれないため、4 ファイルすべてが必�
 
 ---
 
-## Undo / Redo
+## 元に戻す・やり直し
 
 | 操作 | ショートカット |
 |---|---|
@@ -110,17 +133,17 @@ JSON に画像データは含まれないため、4 ファイルすべてが必�
 
 ## 出力形式
 
-### Save RGB TIFF
+### RGB TIFF出力（`Save RGB TIFF`）
 
-従来の Generate Figure と同等の処理で RGB TIFF を生成します。透過には対応していません。
+RGB TIFF を生成します。透過には対応していません。
 
-### Save PNG
+### PNG出力（`Save PNG`）
 
 - White / Black / Transparent 背景を選択できます。
 - 透過時はアルファチャンネル付き PNG として保存されます。
 - プレビューでは透過部分を市松模様で表示します。
 
-### Save PPTX
+### PowerPoint出力（`Save PPTX`）
 
 - スライドのアスペクト比はFigureと同じになります。
 - 各セル画像・ラベル・スケールバー・バーテキスト・インセットが独立したオブジェクトとして配置されます。
@@ -216,7 +239,7 @@ Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/f
 
 `dist/figure-panel-builder-1.0.0.jar`・`dist/figure_panel_builder_testset.zip` と `test-data/` のサンプルは Git 管理対象です。サンプルを更新した際は `./package-testset.ps1` で配布 ZIP を更新してください（画像は再生成せず、現在の4ファイルをまとめます）。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
 
-公開時は GitHub Releases でバージョンのタグを指定し、上記 JAR とサンプル ZIP を Assets に添付してください。README の配布リンクは最新の Release ページを開きます。
+公開時は GitHub Releases でバージョンのタグを指定し、上記 JAR とサンプル ZIP を Assets に添付してください。README のプラグイン配布リンクは、このリポジトリの検証済みJARを直接取得します。サンプルのリンクは最新のリリースページを開きます。
 
 詳細は [`IMPLEMENTATION_PLAN.md`](docs/development/IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](docs/development/VALIDATION.md) を参照してください。
 
@@ -224,5 +247,5 @@ Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/f
 ## ファイル選択の初期フォルダ
 画像・設定の保存と設定の読み込みは、選択中の画像のフォルダを初期表示します。未選択の場合は図で使用中の画像、次に Fiji の現在の画像を参照し、有効な保存元がなければ標準フォルダを使用します。通常モード・Free build 共通です。
 
-## Free build mode
+## 自由配置モード
 上部メニューバーの右から `Free mode` が選択できます。Free modeは現在未完成です。

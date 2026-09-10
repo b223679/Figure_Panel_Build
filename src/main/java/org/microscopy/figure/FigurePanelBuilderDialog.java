@@ -51,7 +51,7 @@ public class FigurePanelBuilderDialog extends JFrame {
   }
 
   FigurePanelBuilderDialog(boolean selectOnStartup) {
-    super("Figure Panel Builder");
+    super("Visual Fig Builder");
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     config.labels.showRows = true;
     config.labels.showColumns = true;
@@ -235,7 +235,7 @@ public class FigurePanelBuilderDialog extends JFrame {
       action.run();
     } catch (Exception ex) {
       JOptionPane.showMessageDialog(
-          this, ex.getMessage(), "Figure Panel Builder", JOptionPane.ERROR_MESSAGE);
+          this, ex.getMessage(), "Visual Fig Builder", JOptionPane.ERROR_MESSAGE);
     }
   }
 

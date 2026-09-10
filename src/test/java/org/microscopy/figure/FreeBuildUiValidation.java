@@ -56,8 +56,8 @@ public class FreeBuildUiValidation {
         button(dialog,"Show inset").doClick();select(1);button(dialog,"Show image name instead of image").doClick();
       });
       ready();capture("free-layout.png");
-      edt(()->{select(3);respond(w->title(w).equals("Figure Panel Builder"),w->pane(w).setValue(JOptionPane.CANCEL_OPTION));button(dialog,"Remove").doClick();check(config().panels.get(3).image!=null,"Remove cancellation");
-        respond(w->title(w).equals("Figure Panel Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Remove").doClick();check(config().panels.get(3).image==null,"Remove clears slot");
+      edt(()->{select(3);respond(w->title(w).equals("Visual Fig Builder"),w->pane(w).setValue(JOptionPane.CANCEL_OPTION));button(dialog,"Remove").doClick();check(config().panels.get(3).image!=null,"Remove cancellation");
+        respond(w->title(w).equals("Visual Fig Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Remove").doClick();check(config().panels.get(3).image==null,"Remove clears slot");
         shortcut("control Z");check(config().panels.get(3).image!=null,"Undo remove");shortcut("control Y");check(config().panels.get(3).image==null,"Redo remove");shortcut("control Z");
       });
       for(String format:new String[]{"tif","png","pptx","json"}) {
@@ -67,14 +67,14 @@ public class FreeBuildUiValidation {
         check(Files.exists(file)&&Files.size(file)>0,"Output saved: "+format);
       }
       edt(()->{
-        choose(output.resolve("free-figure.json").toFile());respond(w->title(w).equals("Figure Panel Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Load settings").doClick();
+        choose(output.resolve("free-figure.json").toFile());respond(w->title(w).equals("Visual Fig Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Load settings").doClick();
       });await(()->!(Boolean)field(dialog,"busy"),"load settings");
       check(config().panels.get(1).showName,"Name mode restored");
       edt(()->button(dialog,"Generate TIF").doClick());await(()->!(Boolean)field(dialog,"busy"),"Generate TIF");
       edt(()->{
         check(ij.WindowManager.getImage("Free build")!=null,"Generated ImagePlus exists");
-        respond(w->title(w).equals("Figure Panel Builder"),w->pane(w).setValue(JOptionPane.CANCEL_OPTION));button(dialog,"Free mode ON").doClick();check(dialog.isDisplayable(),"Off cancellation preserves free grid");
-        respond(w->title(w).equals("Figure Panel Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Free mode ON").doClick();check(!dialog.isDisplayable(),"Off clears free editor");
+        respond(w->title(w).equals("Visual Fig Builder"),w->pane(w).setValue(JOptionPane.CANCEL_OPTION));button(dialog,"Free mode ON").doClick();check(dialog.isDisplayable(),"Off cancellation preserves free grid");
+        respond(w->title(w).equals("Visual Fig Builder"),w->pane(w).setValue(JOptionPane.OK_OPTION));button(dialog,"Free mode ON").doClick();check(!dialog.isDisplayable(),"Off clears free editor");
         for(Window window:Window.getWindows())if(window instanceof FigurePanelBuilderDialog && window.isDisplayable())check(((FigureConfiguration)field(window,"config")).conditions.isEmpty(),"Normal figure reset");
       });
       check(Arrays.equals(original,MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(Paths.get("test-data/Image A.tif")))) ,"Source TIFF unchanged");

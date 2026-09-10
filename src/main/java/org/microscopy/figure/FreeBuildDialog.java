@@ -43,7 +43,7 @@ public final class FreeBuildDialog extends JFrame {
   }
 
   public FreeBuildDialog(int rows, int columns) {
-    super("Figure Panel Builder — Free build");
+    super("Visual Fig Builder — Free build");
     config = new FreeBuildConfiguration(rows,columns);
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -92,12 +92,12 @@ public final class FreeBuildDialog extends JFrame {
   }
 
   private boolean confirm(String message) {
-    return JOptionPane.showConfirmDialog(this,message,"Figure Panel Builder",JOptionPane.OK_CANCEL_OPTION,JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
+    return JOptionPane.showConfirmDialog(this,message,"Visual Fig Builder",JOptionPane.OK_CANCEL_OPTION,JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
   }
   private void attempt(Runnable run) { if (!busy) try { run.run(); } catch (Exception ex) { error(ex); } }
   private void error(Exception ex) {
     Throwable cause = ex.getCause() == null ? ex : ex.getCause();
-    status.setText(cause.getMessage()); JOptionPane.showMessageDialog(this,cause.getMessage(),"Figure Panel Builder",JOptionPane.ERROR_MESSAGE);
+    status.setText(cause.getMessage()); JOptionPane.showMessageDialog(this,cause.getMessage(),"Visual Fig Builder",JOptionPane.ERROR_MESSAGE);
   }
   private void button(JPanel p,String text,Runnable run) {
     JButton b = new JButton(text); b.addActionListener(e -> attempt(run)); p.add(b);
