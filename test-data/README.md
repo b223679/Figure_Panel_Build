@@ -1,6 +1,6 @@
 # 合成テストデータ
 
-[設定と画像を ZIP でダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure_panel_builder_testset.zip)し、すべて展開して `example-settings.json` を読み込むと試せます。ZIP の更新はプロジェクトルートで `./package-testset.ps1` を実行します。
+[Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `figure_panel_builder_testset.zip` をダウンロードし、すべて展開して `example-settings.json` を読み込むと試せます。ZIP の更新はプロジェクトルートで `./package-testset.ps1` を実行します。
 
 Image A.tif / Image B.tif / Image C.tifの3枚です。実験データではありません。
 
@@ -13,6 +13,6 @@ Image A.tif / Image B.tif / Image C.tifの3枚です。実験データではあ�
 
 example-settings.jsonは3×3のGreen/Red/Merge、共通0–2000、Gap=5、ラベル、10 µmバーの例です。パスはこのJSONを基準とした相対パスです。
 
-ダウンロード手順は[README のクイックスタート](../README.md#設定ファイルから試す)を参照してください。JSON と TIFF 3 枚を同じフォルダに置いてください。この 4 ファイルはクイックスタートと回帰テストに必要なため保持します。UI スクリーンショットや生成フィギュアは `artifacts/` に出力し、このフォルダには保存しません。
+ダウンロード手順は[README のクイックスタート](../README.md#サンプルファイルで試す)を参照してください。JSON と TIFF 3 枚を同じフォルダに置いてください。この 4 ファイルはクイックスタートと回帰テストに必要なため保持します。UI スクリーンショットや生成フィギュアは `artifacts/` に出力し、このフォルダには保存しません。
 
 再生成: プロジェクトルートで`generate-test-data.ps1`。生成コードは`src/test/java/org/microscopy/figure/TestImageGenerator.java`です。再生成するとこのフォルダの合成TIFと設定例を更新します。

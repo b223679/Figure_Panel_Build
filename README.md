@@ -17,7 +17,7 @@
 
 ## インストール
 
-1. [figure-panel-builder-1.0.0.jar をダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure-panel-builder-1.0.0.jar)して、Fiji の `plugins` フォルダにコピーします。
+1. [Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)を開き、**Assets** から `figure-panel-builder-1.0.0.jar` をダウンロードして、Fiji の `plugins` フォルダにコピーします。
 2. Fiji を再起動します。
 3. メニューから `Plugins > Figure Panel Builder` を選択して起動します。
 
@@ -27,13 +27,13 @@
 
 ### サンプルファイルで試す
 
-1. [figure_panel_builder_testset.zip をダウンロード](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure_panel_builder_testset.zip)して、任意のフォルダに**すべて展開**します。
+1. [Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `figure_panel_builder_testset.zip` をダウンロードして、任意のフォルダに**すべて展開**します。
 2. プラグインを起動し、最初の画像選択ダイアログを閉じて `Load settings` から展開先の `example-settings.json` を開きます。
 3. **Image A / Image B / Image C × Green / Red / Merge** のサンプルが表示されます。
 
 ZIP には設定 JSON と合成画像 `Image A.tif`・`Image B.tif`・`Image C.tif` が入っています。展開後も4ファイルを同じフォルダに置いてください。
 
-JSON に画像データは含まれないため、4 ファイルすべてが必要です。[リポジトリ全体を ZIP でダウンロード](https://github.com/b223679/Figure_Panel_Build/archive/refs/heads/master.zip)して展開する場合は、同梱の `test-data/example-settings.json` をそのまま開けます。
+JSON に画像データは含まれないため、4 ファイルすべてが必要です。Releases の **Source code (zip)** をダウンロードして展開する場合は、同梱の `test-data/example-settings.json` をそのまま開けます。
 
 ### 基本操作
 
@@ -215,6 +215,8 @@ Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/f
 ```
 
 `dist/figure-panel-builder-1.0.0.jar`・`dist/figure_panel_builder_testset.zip` と `test-data/` のサンプルは Git 管理対象です。サンプルを更新した際は `./package-testset.ps1` で配布 ZIP を更新してください（画像は再生成せず、現在の4ファイルをまとめます）。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
+
+公開時は GitHub Releases でバージョンのタグを指定し、上記 JAR とサンプル ZIP を Assets に添付してください。README の配布リンクは最新の Release ページを開きます。
 
 詳細は [`IMPLEMENTATION_PLAN.md`](docs/development/IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](docs/development/VALIDATION.md) を参照してください。
 
