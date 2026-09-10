@@ -133,3 +133,9 @@
 - `build.ps1`の増分verify成功：46テスト、失敗0、エラー0、スキップ0。初回は依存JARのアクセス制限で失敗し、権限付き再実行で成功。
 - `WorkspaceUiValidation`を独立Javaプロセスで実行してPASS。合成画像によるマージ追加、7条件、軸入れ替え、B&C開閉、設定パネルを確認。既存Fijiと画像ウィンドウは操作していない。
 - 配布JARのSciJava登録が`Plugins>Visual Fig Builder`であることを確認。READMEのJARリンクをリポジトリ内の検証済み配布物への直接リンクに変更。
+## 2026-09-10：Releases配布名とB&C説明の更新
+
+- インストールリンクを最新Releasesへ統一。配布物を`visual-fig-builder-1.0.0.jar`と`visual-fig-builder-testset.zip`へ改名し、サンプルREADME・梱包スクリプト・Git管理対象も更新。
+- B&C説明の末尾にGrayscaleとInvert grayの単独表示／Merge／LUTへの作用を追記。ImageRendererの実装を確認し、動作自体は変更していない。
+- 増分`build.ps1` verify成功：46テスト、失敗0、エラー0。GUIコードの変更なし。
+- Releasesの旧配布物をartifactsへ退避し、Visual Fig Builderの登録を含む検証済みJARを公開。公開JARのSHA256はローカル配布JARと一致（c1793dd49e2ce6b841989a2f9595fc7e975b0cf7f4572261c4c560b44e61344d）。ZIPはローカルと公開版の同一性を確認して名前のみ変更。

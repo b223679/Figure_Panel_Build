@@ -8,4 +8,4 @@ foreach ($taskSampleFile in $taskSampleFiles) {
 }
 $taskDist = Join-Path $PSScriptRoot 'dist'
 New-Item -ItemType Directory -Path $taskDist -Force | Out-Null
-Compress-Archive -LiteralPath $taskSampleFiles -DestinationPath (Join-Path $taskDist 'figure_panel_builder_testset.zip') -Force
+Compress-Archive -LiteralPath $taskSampleFiles -DestinationPath (Join-Path $taskDist 'visual-fig-builder-testset.zip') -Force

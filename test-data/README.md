@@ -1,6 +1,6 @@
 # 合成テストデータ
 
-[Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `figure_panel_builder_testset.zip` をダウンロードし、すべて展開して `example-settings.json` を読み込むと試せます。ZIP の更新はプロジェクトルートで `./package-testset.ps1` を実行します。
+[Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `visual-fig-builder-testset.zip` をダウンロードし、すべて展開して `example-settings.json` を読み込むと試せます。ZIP の更新はプロジェクトルートで `./package-testset.ps1` を実行します。
 
 Image A.tif / Image B.tif / Image C.tifの3枚です。実験データではありません。
 

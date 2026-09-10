@@ -29,19 +29,19 @@ Visual Fig Builderは、蛍光・免疫染色画像からFigure Panelを作成�
 
 ## インストール
 
-1. [最新版のプラグインJAR](https://github.com/b223679/Figure_Panel_Build/raw/refs/heads/master/dist/figure-panel-builder-1.0.0.jar)をダウンロードして、Fiji の `plugins` フォルダにコピーします。既存の同名JARがあれば置き換えます。
+1. [Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `visual-fig-builder-1.0.0.jar` をダウンロードして、Fiji の `plugins` フォルダにコピーします。旧版の `figure-panel-builder-1.0.0.jar` がある場合は、重複読み込みを防ぐため、Fijiを終了してから旧版を `plugins` フォルダの外へ移動してください。既存の同名JARがあれば置き換えます。
 2. Fiji を再起動します。
 3. メニューから `Plugins > Visual Fig Builder` を選択して起動します。
 
 ---
 
-JARのファイル名と内部クラス名は互換性のため従来の名前を維持しています。メニューとウィンドウの表示名は **Visual Fig Builder** です。設定JSONの形式と画像の出力処理は従来どおりです。
+配布JARの名前は `visual-fig-builder-1.0.0.jar` です。内部クラス名は互換性のため従来の名前を維持しています。メニューとウィンドウの表示名は **Visual Fig Builder** です。設定JSONの形式と画像の出力処理は従来どおりです。
 
 ## クイックスタート
 
 ### サンプルファイルで試す
 
-1. [Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `figure_panel_builder_testset.zip` をダウンロードして、任意のフォルダに**すべて展開**します。
+1. [Releases ページ](https://github.com/b223679/Figure_Panel_Build/releases/latest)の **Assets** から `visual-fig-builder-testset.zip` をダウンロードして、任意のフォルダに**すべて展開**します。
 2. プラグインを起動し、最初の画像選択ダイアログを閉じて `Load settings` から展開先の `example-settings.json` を開きます。
 3. **Image A / Image B / Image C × Green / Red / Merge** のサンプルが表示されます。
 
@@ -85,6 +85,7 @@ JSON に画像データは含まれないため、4 ファイルすべてが必�
 - 元画像の画素値は変更しません。
 - Merge チャネルでは `Channel` 欄から調整する元チャネルを選択します。
 - Min / Max / LUT 変更はリアルタイムにプレビューへ反映されます。
+- **Grayscale（Gray）・Invert gray（Invert）**：`Grayscale` をチェックすると単独チャネルの表示だけがグレースケールになり、設定済みのLUTは保持され、Mergeでは元のLUTを使用します。`Invert gray` はグレースケール表示の明暗だけを反転し、カラー表示には作用しません。LUT自体が `Grayscale` の場合はMerge内でも反転が適用されます。いずれも同じ元チャネルの全条件と出力画像に反映され、元画像の画素値は変更しません。
 
 ### ラベル編集
 
@@ -225,12 +226,12 @@ JDK 8 互換バイトコードを JDK 21 と Maven 3.9.9 で生成します。Im
 ビルド結果は `target/figure-panel-builder-1.0.0.jar` です。配布版を更新するときは、`verify` 成功後に次のコマンドでコピーし、ソースと合わせてコミットしてください。
 
 ```powershell
-Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/figure-panel-builder-1.0.0.jar
+Copy-Item -LiteralPath target/figure-panel-builder-1.0.0.jar -Destination dist/visual-fig-builder-1.0.0.jar
 ```
 
-`dist/figure-panel-builder-1.0.0.jar`・`dist/figure_panel_builder_testset.zip` と `test-data/` のサンプルは Git 管理対象です。サンプルを更新した際は `./package-testset.ps1` で配布 ZIP を更新してください（画像は再生成せず、現在の4ファイルをまとめます）。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
+`dist/visual-fig-builder-1.0.0.jar`・`dist/visual-fig-builder-testset.zip` と `test-data/` のサンプルは Git 管理対象です。サンプルを更新した際は `./package-testset.ps1` で配布 ZIP を更新してください（画像は再生成せず、現在の4ファイルをまとめます）。`target/` はビルド出力、`artifacts/` は再生成可能な検証画像・出力の保存先で、どちらも配布には不要です。`generate-test-data.ps1` はサンプルの再生成用なので、通常のインストールでは実行不要です。
 
-公開時は GitHub Releases でバージョンのタグを指定し、上記 JAR とサンプル ZIP を Assets に添付してください。README のプラグイン配布リンクは、このリポジトリの検証済みJARを直接取得します。サンプルのリンクは最新のリリースページを開きます。
+公開時は GitHub Releases でバージョンのタグを指定し、上記 JAR とサンプル ZIP を Assets に添付してください。README のプラグインとサンプルの配布リンクは、最新のReleasesページを開きます。
 
 詳細は [`IMPLEMENTATION_PLAN.md`](docs/development/IMPLEMENTATION_PLAN.md)・[`VALIDATION.md`](docs/development/VALIDATION.md) を参照してください。
 
