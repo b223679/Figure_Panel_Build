@@ -56,7 +56,7 @@ public class FigurePanelBuilderDialog extends JFrame {
     addWindowListener(new java.awt.event.WindowAdapter() {
       public void windowClosing(java.awt.event.WindowEvent e) { attempt(() -> {
         int answer = JOptionPane.showConfirmDialog(FigurePanelBuilderDialog.this,
-            "現在のsettingをセーブしますか？", "Close Visual Fig Builder", JOptionPane.YES_NO_CANCEL_OPTION);
+            "Would you like to save the current settings before closing?", "Close Visual Fig Builder", JOptionPane.YES_NO_CANCEL_OPTION);
         if (answer == JOptionPane.NO_OPTION || (answer == JOptionPane.YES_OPTION && settings(false))) dispose();
       }); }
     });

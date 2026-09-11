@@ -16,9 +16,16 @@ final class ImageImport {
   private ImageImport() {}
 
   static boolean confirm(Component owner, String title) {
+    return confirm(owner, title, false);
+  }
+
+  private static boolean confirm(Component owner, String title, boolean lif) {
     final boolean[] accepted = {false};
     Runnable prompt = () -> accepted[0] = JOptionPane.showConfirmDialog(owner,
-        "ZスタックからMAX Projectionを作成・保存して読み込みます。\n" + title,
+        lif ? "Save and open MAX Z-projections of all images in " + title + "?\n"
+            + "TIFF files will be saved in a new folder next to the LIF file.\n"
+            + "Single-plane images will be saved without projection."
+            : "Create, save, and open a MAX Z-projection of " + title + "?",
         "MAX Projection", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION;
     try {
       if (SwingUtilities.isEventDispatchThread()) prompt.run();
@@ -31,6 +38,7 @@ final class ImageImport {
     boolean lif = file.getName().toLowerCase(Locale.ROOT).endsWith(".lif");
     if (!lif && !file.getName().toLowerCase(Locale.ROOT).matches(".*\\.tiff?"))
       throw new IllegalArgumentException("Select a TIF/TIFF or LIF file.");
+    if (lif && !confirm(owner, file.getName(), true)) return Collections.emptyList();
     ImagePlus[] images = lif ? readLif(file) : new ImagePlus[]{new Opener().openImage(file.getAbsolutePath())};
     try {
       boolean projection = false;
@@ -38,7 +46,7 @@ final class ImageImport {
         validate(image);
         projection |= image.getNSlices() > 1;
       }
-      if (projection && !confirm(owner, file.getName())) return Collections.emptyList();
+      if (!lif && projection && !confirm(owner, file.getName())) return Collections.emptyList();
       File directory = lif ? Files.createTempDirectory(file.getAbsoluteFile().getParentFile().toPath(),
           stem(file) + "_TIFF_").toFile() : file.getAbsoluteFile().getParentFile();
       List<InputImageManager.Source> result = new ArrayList<>();

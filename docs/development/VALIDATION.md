@@ -149,3 +149,11 @@
 - ImportCloseUiValidationをheadless=falseの独立JVMで実行してPASS。合成TIFFのMAX確認の承認／取消、終了取消、保存先取消、保存成功後終了、保存せず終了、元TIFFのバイト不変を確認。既存Fijiやユーザー画像は操作していない。
 - 初回の増分ビルドは依存JARのアクセス制限で失敗し、権限付き実行で成功。追加した設定保存テストは必須DisplayChannelの設定不足を修正後に全件成功。
 - 開始時の未追跡.claude/とtools/は変更・コミット対象外。追跡済みの未コミット変更はなかったため、既存HEADを基準として実装。distの配布JARを更新。FijiへのインストールやGitHub公開は実施していない。
+
+## 2026-09-11：追加メッセージの英語化とFijiへの配置
+
+- 通常モードのMAX Projection確認と終了時の設定保存確認を英語化。
+- LIFは読み込み開始前に「Save and open MAX Z-projections of all images in <filename>?」を表示。保存先がLIFの隣の新規フォルダであること、単一Z画像は投影せず保存することも明記。Zの有無にかかわらずLIF全体に一度確認し、後続の重複確認は表示しない。
+- ユーザー指示によりテストは未実行。MAVEN_OPTSに-Dmaven.test.skip=trueを指定したbuild.ps1 -Goal packageが成功。最初に複数引数をGoalへ渡した試行はゴール解釈エラーで終了し、環境変数指定に変更。
+- dist/visual-fig-builder-1.0.0.jarを更新し、既存インストールJARを.fiji-plugin-backup内の一意なフォルダへバックアップしてからC:/Program Files/Fiji/plugins/visual-fig-builder-1.0.0.jarへ配置。配布物と配置先のSHA-256一致を確認（CB13025F2CB76052E2A1AF77B7C85A685E41DD4A9C2E1D5C7B7A5A09C88D8E79）。
+- Fijiプロセスは再起動せず、ユーザー画像や未追跡のLIF・変換TIFF・既存作業は変更していない。Free modeは変更なし。
