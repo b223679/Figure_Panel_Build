@@ -25,7 +25,7 @@ final class OpenImageSelection {
         : multiple ? "Select images already open in Fiji (Ctrl / Shift for multiple images)" : "Select an image already open in Fiji"), BorderLayout.NORTH);
     selection.add(new JScrollPane(list));
     int choice = JOptionPane.showOptionDialog(parent, selection, "Select Images", JOptionPane.DEFAULT_OPTION,
-        JOptionPane.PLAIN_MESSAGE, null, new String[]{"Add selected", "Open TIFF files...", "Cancel"}, "Add selected");
+        JOptionPane.PLAIN_MESSAGE, null, new String[]{"Add selected", multiple ? "Open TIFF / LIF files..." : "Open TIFF files...", "Cancel"}, "Add selected");
     OpenImageSelection result = new OpenImageSelection(); result.browse = choice == 1;
     if (choice == 0) for (int index : list.getSelectedIndices()) {
       ImagePlus image = WindowManager.getImage(ids[index]);

@@ -139,3 +139,13 @@
 - B&C説明の末尾にGrayscaleとInvert grayの単独表示／Merge／LUTへの作用を追記。ImageRendererの実装を確認し、動作自体は変更していない。
 - 増分`build.ps1` verify成功：46テスト、失敗0、エラー0。GUIコードの変更なし。
 - Releasesの旧配布物をartifactsへ退避し、Visual Fig Builderの登録を含む検証済みJARを公開。公開JARのSHA256はローカル配布JARと一致（c1793dd49e2ce6b841989a2f9595fc7e975b0cf7f4572261c4c560b44e61344d）。ZIPはローカルと公開版の同一性を確認して名前のみ変更。
+## 2026-09-11：通常モードのZ/LIF入力と終了時保存確認
+
+- 通常モードのみ変更。TIFF・開画像のZ>=2をChannel別MAX Projectionにして元ファイルのフォルダへ別名保存し、保存TIFFを読み込む。確認取消では書き込みなし。LIFはBio-Formatsで全シリーズを読み、元LIFの隣の新規フォルダにシリーズ別TIFF（必要ならMAX）を保存する。
+- Bio-Formats 8.5.0のローカルJARで使用APIを確認。分割・切り抜き・範囲指定・連結などのユーザー設定を無効化し、XYCZT Hyperstackとして読み込む。実LIFサンプルはワークスペースにないため、実LIFのエンドツーエンド検証は未実施。
+- T>1/RGBの制限、Figure内の同サイズ・同Channel数の制限、設定JSON形式、画像生成・エクスポート処理、Free modeは維持。異なるサイズ等のシリーズもTIFF変換自体は完了してからFigureへの追加判定が行われる。
+- ×ではYes/No/Cancelを確認。設定保存が成功した場合のみYesから終了。保存先取消・失敗では継続。
+- 増分build.ps1 verify成功：49 tests、0 failures、0 errors、0 skipped。新規3テストはZ=1/2/4のMAX値・Channel・校正保持・元画素保持、TIFF再読み込み・重複名・既存ファイル保持・設定ラウンドトリップ、T>1拒否を検証。
+- ImportCloseUiValidationをheadless=falseの独立JVMで実行してPASS。合成TIFFのMAX確認の承認／取消、終了取消、保存先取消、保存成功後終了、保存せず終了、元TIFFのバイト不変を確認。既存Fijiやユーザー画像は操作していない。
+- 初回の増分ビルドは依存JARのアクセス制限で失敗し、権限付き実行で成功。追加した設定保存テストは必須DisplayChannelの設定不足を修正後に全件成功。
+- 開始時の未追跡.claude/とtools/は変更・コミット対象外。追跡済みの未コミット変更はなかったため、既存HEADを基準として実装。distの配布JARを更新。FijiへのインストールやGitHub公開は実施していない。

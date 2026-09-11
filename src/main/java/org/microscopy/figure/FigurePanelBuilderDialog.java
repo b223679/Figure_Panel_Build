@@ -52,7 +52,14 @@ public class FigurePanelBuilderDialog extends JFrame {
 
   FigurePanelBuilderDialog(boolean selectOnStartup) {
     super("Visual Fig Builder");
-    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    addWindowListener(new java.awt.event.WindowAdapter() {
+      public void windowClosing(java.awt.event.WindowEvent e) { attempt(() -> {
+        int answer = JOptionPane.showConfirmDialog(FigurePanelBuilderDialog.this,
+            "現在のsettingをセーブしますか？", "Close Visual Fig Builder", JOptionPane.YES_NO_CANCEL_OPTION);
+        if (answer == JOptionPane.NO_OPTION || (answer == JOptionPane.YES_OPTION && settings(false))) dispose();
+      }); }
+    });
     config.labels.showRows = true;
     config.labels.showColumns = true;
     controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
@@ -248,14 +255,15 @@ public class FigurePanelBuilderDialog extends JFrame {
   private void chooseFiles() {
     JFileChooser chooser = imageFileChooser();
     chooser.setMultiSelectionEnabled(true);
-    chooser.setFileFilter(new FileNameExtensionFilter("TIFF", "tif", "tiff"));
+    chooser.setFileFilter(new FileNameExtensionFilter("TIFF / Leica LIF", "tif", "tiff", "lif"));
     if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
       addFiles(Arrays.asList(chooser.getSelectedFiles()));
   }
 
   void addFiles(List<File> files) {
     try {
-      for (File file : files) addSource(inputs.load(file));
+      for (File file : files)
+        for (InputImageManager.Source source : ImageImport.load(inputs, file, this)) addSource(source);
     } finally {
       refresh();
     }
@@ -265,7 +273,10 @@ public class FigurePanelBuilderDialog extends JFrame {
     OpenImageSelection selection = OpenImageSelection.choose(this, true);
     if (selection.browse) { chooseFiles(); return; }
     try {
-      for (ImagePlus image : selection.images) addSource(inputs.snapshot(image, null));
+      for (ImagePlus image : selection.images) {
+        InputImageManager.Source source = ImageImport.open(inputs, image, this);
+        if (source != null) addSource(source);
+      }
     } finally { refresh(); }
   }
 
@@ -545,12 +556,12 @@ public class FigurePanelBuilderDialog extends JFrame {
     for (ConditionConfig condition : config.conditions) ids.add(condition.sourceId);
     return new JFileChooser(ImageFileDialogs.directory(inputs, ids));
   }
-  private void settings(boolean load) {
+  private boolean settings(boolean load) {
     JFileChooser chooser = imageFileChooser();
     chooser.setFileFilter(new FileNameExtensionFilter("Settings JSON", "json"));
     chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), "figure-settings.json"));
     if ((load ? chooser.showOpenDialog(this) : chooser.showSaveDialog(this))
-        != JFileChooser.APPROVE_OPTION) return;
+        != JFileChooser.APPROVE_OPTION) return false;
     try {
       SettingsSerializer serializer = new SettingsSerializer();
       if (load) {
@@ -563,9 +574,10 @@ public class FigurePanelBuilderDialog extends JFrame {
         if (dest.exists()
             && JOptionPane.showConfirmDialog(
                     this, "Replace " + dest.getName() + "?", "Settings", JOptionPane.YES_NO_OPTION)
-                != JOptionPane.YES_OPTION) return;
+                != JOptionPane.YES_OPTION) return false;
         serializer.save(dest, config, inputs);
       }
+      return true;
     } catch (Exception ex) {
       throw new IllegalArgumentException(ex.getMessage(), ex);
     }
