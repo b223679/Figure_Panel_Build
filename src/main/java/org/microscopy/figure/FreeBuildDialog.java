@@ -85,9 +85,7 @@ public final class FreeBuildDialog extends JFrame {
     getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control Y"),"redoFree");
     getRootPane().getActionMap().put("undoFree",new AbstractAction() { public void actionPerformed(ActionEvent e) { restore(-1); } });
     getRootPane().getActionMap().put("redoFree",new AbstractAction() { public void actionPerformed(ActionEvent e) { restore(1); } });
-    setSize(1400,900); setMinimumSize(new Dimension(1000,720));
-    Rectangle usable = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-    setMaximizedBounds(usable); setExtendedState(MAXIMIZED_BOTH); setLocationByPlatform(true);
+    FigureWindowPlacement.apply(this, 1400, 900, 1000, 720);
     rebuildEditor(); changed();
   }
 

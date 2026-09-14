@@ -28,8 +28,8 @@ public class AppearanceUiValidation {
     try {
       SwingUtilities.invokeAndWait(() -> {
         dialog = new FigurePanelBuilderDialog(false); dialog.setTitle("Appearance QA — temporary test window");
-        if ((dialog.getExtendedState() & JFrame.MAXIMIZED_BOTH) != JFrame.MAXIMIZED_BOTH)
-          throw new AssertionError("Window must start maximized");
+        if (dialog.getExtendedState() != JFrame.NORMAL)
+          throw new AssertionError("Window must start in normal state");
         dialog.setVisible(true);
         dialog.addFiles(Collections.singletonList(sourceFile));
         try {
@@ -66,7 +66,7 @@ public class AppearanceUiValidation {
         } catch (Exception ex) { throw new RuntimeException(ex); }
       });
       waitPreview();
-      System.out.println("PASS: maximized startup; 1024px import -> 102px fonts, 80px bar / 20 um, thickness 31px; editable PPTX and transparent PNG/PPTX; manual size preserved.");
+      System.out.println("PASS: normal startup; 1024px import -> 102px fonts, 80px bar / 20 um, thickness 31px; editable PPTX and transparent PNG/PPTX; manual size preserved.");
     } finally { if (dialog != null) SwingUtilities.invokeAndWait(() -> dialog.dispose()); }
   }
   private static Object field(Object object, String name) throws Exception {

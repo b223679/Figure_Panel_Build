@@ -206,19 +206,7 @@ public class FigurePanelBuilderDialog extends JFrame {
             }
           }
         });
-    setSize(1380, 900);
-    setMinimumSize(new Dimension(960, 700));
-    GraphicsConfiguration screen = getGraphicsConfiguration();
-    Rectangle usable = new Rectangle(screen.getBounds());
-    Insets taskbar = Toolkit.getDefaultToolkit().getScreenInsets(screen);
-    usable.x += taskbar.left; usable.y += taskbar.top;
-    usable.width -= taskbar.left + taskbar.right;
-    // Extra safety margin: some Windows DPI/taskbar configurations under-report insets here,
-    // which otherwise leaves the footer (Generate TIF etc.) hidden behind the taskbar.
-    usable.height -= taskbar.top + taskbar.bottom + 24;
-    setMaximizedBounds(usable);
-    setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
-    setLocationByPlatform(true);
+    FigureWindowPlacement.apply(this, 1380, 900, 960, 700);
     refresh();
     if (selectOnStartup) addWindowListener(new java.awt.event.WindowAdapter() {
       public void windowOpened(java.awt.event.WindowEvent e) {
